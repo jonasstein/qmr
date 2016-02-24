@@ -25,6 +25,7 @@ class lmfile
     std::ifstream ifs;
     //char myfilename[80];
     u_int64_t filesize;
+
    /* u_int64_t file_last_position_after_signature; // points to first char behind the last signature
     u_int16_t file_last_signature_type; // 1=header, 2=databuffer, 3= eofsig, -1=else
     datablock db; 

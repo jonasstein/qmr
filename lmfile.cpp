@@ -30,11 +30,11 @@
 #endif
 
 
-lmfile::lmfile(char const * mypath) : filesize ( 0 )
+lmfile::lmfile(char const * mypath) : filesize ( 0 ), ifs ( mypath, std::ifstream::ate | std::ifstream::binary )
 {
    //lmfile::ifs ( mypath, std::ifstream::ate | std::ifstream::binary );
    std::cout << "CREATE! \n";
-   std::ifstream ofs ( mypath, std::ifstream::ate | std::ifstream::binary );
+//   std::ifstream ofs ( mypath, std::ifstream::ate | std::ifstream::binary );
 //   ifs = ofs; this line does not work :(
 }
 

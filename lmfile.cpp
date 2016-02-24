@@ -33,7 +33,9 @@
 lmfile::lmfile(char const * mypath) : ifs ( mypath, std::ifstream::ate | std::ifstream::binary ), filesize ( 0 )
 {
    std::cout << "CREATE! \n";
+   // "ate" placed cursor to EOF, we can read out the filesize now and go to start.
    filesize = ifs.tellg();
+   ifs.seekg (0, ifs.beg);
 }
 
 lmfile::~lmfile()
@@ -46,10 +48,6 @@ u_filesize_t lmfile::getfilesize()
 {
   return lmfile::filesize;
 }
-
-
-//explicit Parser(char const * path) : m_stream(path) {} 
-//explicit Parser(std::string const & path) : Parser(path.c_str()) {} 
 
 
 

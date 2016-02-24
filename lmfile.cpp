@@ -30,12 +30,10 @@
 #endif
 
 
-lmfile::lmfile(char const * mypath) : filesize ( 0 ), ifs ( mypath, std::ifstream::ate | std::ifstream::binary )
+lmfile::lmfile(char const * mypath) : ifs ( mypath, std::ifstream::ate | std::ifstream::binary ), filesize ( 0 )
 {
-   //lmfile::ifs ( mypath, std::ifstream::ate | std::ifstream::binary );
    std::cout << "CREATE! \n";
-//   std::ifstream ofs ( mypath, std::ifstream::ate | std::ifstream::binary );
-//   ifs = ofs; this line does not work :(
+   filesize = ifs.tellg();
 }
 
 lmfile::~lmfile()
@@ -44,7 +42,7 @@ lmfile::~lmfile()
 }
 
 
-u_int64_t lmfile::getfilesize()
+u_filesize_t lmfile::getfilesize()
 {
   return lmfile::filesize;
 }

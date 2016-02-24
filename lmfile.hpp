@@ -40,7 +40,7 @@ class lmfile
     lmfile( const char* mypath );
     ~lmfile();
     
-  u_filesize_t getfilesize();
+  u_filesize_t showfilesize();
 };
 
 // This is the end of the header guard

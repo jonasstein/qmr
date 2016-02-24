@@ -44,7 +44,7 @@ lmfile::~lmfile()
 }
 
 
-u_filesize_t lmfile::getfilesize()
+u_filesize_t lmfile::showfilesize()
 {
   return lmfile::filesize;
 }

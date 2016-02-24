@@ -30,9 +30,9 @@
 #endif
 
 
-
-lmfile::lmfile() : filesize ( 0 )
+lmfile::lmfile(char const * mypath) : filesize ( 0 )
 {
+  ifs ( mypath, std::ifstream::ate | std::ifstream::binary );
 }
 
 lmfile::~lmfile()
@@ -46,6 +46,8 @@ u_int64_t lmfile::getfilesize()
 }
 
 
+//explicit Parser(char const * path) : m_stream(path) {} 
+//explicit Parser(std::string const & path) : Parser(path.c_str()) {} 
 
 
 

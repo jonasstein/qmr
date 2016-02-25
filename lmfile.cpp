@@ -49,7 +49,24 @@ u_filesize_t lmfile::showfilesize()
   return lmfile::filesize;
 }
 
+int lmfile::showheaderlength()
+{
+  // read first line and parse secondline with number of lines
+  std::string thisline;
+  std::getline(ifs, thisline); 
+  assert(thisline == ("mesytec psd listmode data"));
 
+  // read second line  
+  std::getline(ifs, thisline ); // header length: nnnnn lines
+  std::string ss = ": ";
+  int posi = thisline.find(ss);
+  std::string sustri  = thisline.substr(posi+1,posi+4); // TODO  + 4 => EOL
+  int header_number_of_ascii_lines = std::stoi (sustri,nullptr,10);
+  assert(header_number_of_ascii_lines==2); // we do not know about files <> 2 header lines yet.
+  
+  pos_dataheader = ifs.tellg() + 8;
+  return header_number_of_ascii_lines;
+}
 
 
 

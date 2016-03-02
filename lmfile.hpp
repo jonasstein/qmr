@@ -4,22 +4,28 @@
 
 #include <cstdint>
 #include <fstream>      // std::ifstream
+#include <string>     // std::string, std::stoull FIXME: Do I need this line *here*?
 
-/*
+
 struct datablock{
      u_int16_t bufferlength;
      u_int16_t buffertype;
      u_int16_t headerlength; // number of 16 bit words in the list mode file header
-     u_int16_t buffernumber;
+     u_int16_t buffernumber = 0;
      u_int16_t runid;
      u_int8_t mcpdid;
      bool daqrunning;
      bool syncok;
      u_int64_t header_timestamp=0;
    };
-*/
 
+  const u_int64_t headersignature     = 0x00005555AAAAFFFF;
+  const u_int64_t datablocksignature  = 0x0000FFFF5555AAAA;
+  const u_int64_t filesignature       = 0xFFFFAAAA55550000;
+   
 typedef u_int64_t u_filesize_t;
+typedef u_int64_t eventtime_t;
+
 
 class lmfile
 {
@@ -28,20 +34,31 @@ class lmfile
     //char myfilename[80];
     u_filesize_t filesize;
     u_filesize_t pos_dataheader;
-
+    
+    datablock dblock; 
+   
+    eventtime_t ch0[1000000];
+    eventtime_t ch1[1000000];
+    eventtime_t ch2[1000000];
+    eventtime_t ch4[1000000];
+      
    /* u_int64_t file_last_position_after_signature; // points to first char behind the last signature
     u_int16_t file_last_signature_type; // 1=header, 2=databuffer, 3= eofsig, -1=else
-    datablock db; 
-    u_int64_t eventtime[1000000]; // TODO save eventtime and eventtype as two arrays time[] type[], or one array per type ch0[] ch1[] ch2[] ch3[]? 
+  
     u_int64_t events;     // number of events
     u_int64_t datablocks; // number of datablocks that have been imported
     u_int64_t timestampstart; // timestamp offset; when did the file start?
    */ 
+   
   public:
     lmfile( const char* mypath );
     ~lmfile();
-    
-  u_filesize_t showfilesize();
+    u_int16_t readWord();
+    u_int64_t read64bit();
+    void parsedatablock();
+    u_filesize_t showfilesize();
+    void parseheader();
+    bool EOFahead();
 };
 
 // This is the end of the header guard

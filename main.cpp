@@ -27,6 +27,15 @@ int main () {
   
   std::cout << limo->showfilesize() << " Bytes" << std::endl ; 
   
+  limo->parseheader();
+  
+  bool fileEOF=false;
+  
+  while (fileEOF == false)
+  {
+  limo->parsedatablock();
+  fileEOF = limo->EOFahead();
+  };
   delete(limo);
   
   return 0;

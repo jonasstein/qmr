@@ -88,16 +88,52 @@ void lmfile::parsedatablock()
   dblock.syncok = wordRAW & 0b00000010; //should be 0 usually, we do not use a sync line
   
   // read header time stamp 
-  u_int16_t wordRAWHi = lmfile::readWord();
-  u_int16_t wordRAWMi = lmfile::readWord();
-  u_int16_t wordRAWLo = lmfile::readWord();
-  
+  u_int64_t wordRAWLo = lmfile::readWord(); 
+  u_int64_t wordRAWMi = lmfile::readWord();
+  u_int64_t wordRAWHi = lmfile::readWord();
+  // FIXME: (cosmetic and to learn style) this is ugly code in my eyes. I want to read in 16bit and merge it to 64 bit in one line.
   dblock.header_timestamp = (wordRAWHi << 32) + (wordRAWMi << 16) + (wordRAWLo << 0);
+
   
-  std::cout << dblock.syncok << std::endl;  
+  //std::cout << dblock.syncok << std::endl;  
   
-  //SHOWdec(dblock.bufferlength);
-  SHOWdec(dblock.buffernumber);
+   
+  float milliseconds =  0.0001 * static_cast<float>(dblock.header_timestamp - 431394235384);
+  
+  // std::cout << milliseconds << std::endl;
+
+  // ignore parameter0 .. parameter3 forward 4*3*16 bits = 24 bytes
+  ifs.seekg(+24, std::ios_base::cur);  
+  u_int16_t eventsinthisbuffer = (dblock.bufferlength - 20)/3;
+  
+  //SHOWdec(eventsinthisbuffer);
+  
+  u_int64_t eventLo;
+  u_int64_t eventMi;
+  u_int64_t eventHi;
+  u_int64_t eventRAW;
+  u_int8_t eventtype;
+  u_int32_t eventdata;
+  u_int64_t eventtimestamp;
+  
+  for (int i = 0; i < eventsinthisbuffer; i++)
+  {
+  eventLo = lmfile::readWord(); 
+  eventMi = lmfile::readWord();
+  eventHi = lmfile::readWord();
+  eventRAW = (eventHi << 32) + (eventMi << 16) + (eventLo << 0);
+  
+  
+  eventtype = (eventRAW  >> 40);//& 0x0F ;
+  eventtimestamp = eventRAW & ((0b1 << 20) - 1);
+  
+  std::bitset<48> b1(eventRAW);
+  std::bitset<64> b2(eventtimestamp);
+    
+  float milliseconds =  0.0001 * static_cast<float>((dblock.header_timestamp + eventtimestamp) - 431394235384);
+  
+  std::cout << b1 << " : " << b2 << "==> " << milliseconds << std::endl;
+  }
   
   //go to end of datablock
   
@@ -143,3 +179,8 @@ bool lmfile::EOFahead()
   return (sequenceRAW==filesignature);
 }
 
+float lmfile::timestamptomilliseconds(u_int64_t& ts)
+{
+  float milliseconds =  0.0001 * static_cast<float>(ts);
+  return milliseconds;
+}

@@ -34,14 +34,12 @@ class lmfile
     //char myfilename[80];
     u_filesize_t filesize;
     u_filesize_t pos_dataheader;
-    
+    eventtime_t firsttimestamp;
     datablock dblock; 
    
-    eventtime_t ch0[1000000];
-    eventtime_t ch1[1000000];
-    eventtime_t ch2[1000000];
-    eventtime_t ch4[1000000];
-      
+    eventtime_t times[1000000];
+    u_int8_t  sources[1000000];
+    
    /* u_int64_t file_last_position_after_signature; // points to first char behind the last signature
     u_int16_t file_last_signature_type; // 1=header, 2=databuffer, 3= eofsig, -1=else
   
@@ -59,6 +57,7 @@ class lmfile
     u_filesize_t showfilesize();
     void parseheader();
     bool EOFahead();
+    float timestamptomilliseconds(u_int64_t& ts);
 };
 
 // This is the end of the header guard

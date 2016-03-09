@@ -1,3 +1,4 @@
+#include "js_debug.cpp"
 #include <cstdint>
 #include "lmfile.hpp"
 #include <inttypes.h>
@@ -15,24 +16,10 @@
 
 #include <bitset>
 
-#define _DEBUG
-
-#ifdef _DEBUG
-#define SHOW(a) std::cout << #a << ": 0x" << std::hex << (a) << std::endl
-#else
-#define SHOW(a)
-#endif
-
-#ifdef _DEBUG
-#define SHOWdec(a) std::cout << #a << ": " << std::dec << (a) << std::endl
-#else
-#define SHOWdec(a)
-#endif
 
 
-lmfile::lmfile(char const * mypath) : ifs ( mypath, std::ifstream::ate | std::ifstream::binary ), filesize ( 0 )
+lmfile::lmfile(char const * mypath) : ifs ( mypath, std::ifstream::ate | std::ifstream::binary ), filesize ( 0 ), el_lastevent ( 0 )
 {
-   std::cout << "CREATE! \n";
    // "ate" placed cursor to EOF, we can read out the filesize now and go to start.
    filesize = ifs.tellg();
    ifs.seekg (0, ifs.beg);
@@ -183,4 +170,13 @@ float lmfile::timestamptomilliseconds(u_int64_t& ts)
 {
   float milliseconds =  0.0001 * static_cast<float>(ts);
   return milliseconds;
+}
+
+
+void eventlist::el_addevent ( uint8_t mysource, eventtime_t mytime )
+{
+  assert((el_lastevent + 1) < MAX_EVENTS);
+  el_sources[el_lastevent + 1] = mysource;
+  el_times[el_lastevent + 1] = mytime;
+  lastevent += 1;
 }

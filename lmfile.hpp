@@ -5,26 +5,29 @@
 #include <cstdint>
 #include <fstream>      // std::ifstream
 #include <string>     // std::string, std::stoull FIXME: Do I need this line *here*?
-
+#include "eventlist.hpp" // definition of events, eventlists 
 
 struct datablock{
-     u_int16_t bufferlength;
-     u_int16_t buffertype;
-     u_int16_t headerlength; // number of 16 bit words in the list mode file header
-     u_int16_t buffernumber = 0;
-     u_int16_t runid;
-     u_int8_t mcpdid;
+     uint16_t bufferlength;
+     uint16_t buffertype;
+     uint16_t headerlength; // number of 16 bit words in the list mode file header
+     uint16_t buffernumber = 0;
+     uint16_t runid;
+     uint8_t mcpdid;
      bool daqrunning;
      bool syncok;
-     u_int64_t header_timestamp=0;
+     uint64_t header_timestamp=0;
    };
 
-  const u_int64_t headersignature     = 0x00005555AAAAFFFF;
-  const u_int64_t datablocksignature  = 0x0000FFFF5555AAAA;
-  const u_int64_t filesignature       = 0xFFFFAAAA55550000;
-   
-typedef u_int64_t u_filesize_t;
-typedef u_int64_t eventtime_t;
+  const uint64_t headersignature     = 0x00005555AAAAFFFF;
+  const uint64_t datablocksignature  = 0x0000FFFF5555AAAA;
+  const uint64_t filesignature       = 0xFFFFAAAA55550000;
+  
+const uint64_t MAX_EVENTS = 1000000;
+
+typedef uint64_t eventtime_t;  
+typedef uint64_t u_filesize_t;
+// typedef uint64_t eventtime_t; // now in eventlist
 
 
 class lmfile
@@ -36,28 +39,30 @@ class lmfile
     u_filesize_t pos_dataheader;
     eventtime_t firsttimestamp;
     datablock dblock; 
-   
-    eventtime_t times[1000000];
-    u_int8_t  sources[1000000];
+       
+    //event list items
+    eventtime_t el_times[MAX_EVENTS];
+    uint8_t  el_sources[MAX_EVENTS];
+    uint64_t el_lastevent;
+
     
-   /* u_int64_t file_last_position_after_signature; // points to first char behind the last signature
-    u_int16_t file_last_signature_type; // 1=header, 2=databuffer, 3= eofsig, -1=else
-  
-    u_int64_t events;     // number of events
-    u_int64_t datablocks; // number of datablocks that have been imported
-    u_int64_t timestampstart; // timestamp offset; when did the file start?
+   /* uint64_t file_last_position_after_signature; // points to first char behind the last signature
+    uint16_t file_last_signature_type; // 1=header, 2=databuffer, 3= eofsig, -1=else
    */ 
    
   public:
     lmfile( const char* mypath );
     ~lmfile();
-    u_int16_t readWord();
-    u_int64_t read64bit();
+    uint16_t readWord();
+    uint64_t read64bit();
     void parsedatablock();
     u_filesize_t showfilesize();
     void parseheader();
     bool EOFahead();
-    float timestamptomilliseconds(u_int64_t& ts);
+    float timestamptomilliseconds(uint64_t& ts);
+    
+    void el_addevent(uint8_t mysource, eventtime_t mytime);
+
 };
 
 // This is the end of the header guard

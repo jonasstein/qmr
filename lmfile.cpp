@@ -18,7 +18,7 @@
 
 
 
-lmfile::lmfile(char const * mypath) : ifs ( mypath, std::ifstream::ate | std::ifstream::binary ), filesize ( 0 ), el_lastevent ( 0 )
+lmfile::lmfile(char const * mypath) : ifs ( mypath, std::ifstream::ate | std::ifstream::binary ), filesize ( 0 ),  firsttimestamp ( 0 ), el_lastevent ( 0 )
 {
    // "ate" placed cursor to EOF, we can read out the filesize now and go to start.
    filesize = ifs.tellg();
@@ -90,11 +90,7 @@ void lmfile::parsedatablock()
   dblock.header_timestamp = (wordRAWHi << 32) + (wordRAWMi << 16) + (wordRAWLo << 0);
 
    
-   
-  float milliseconds =  0.0001 * static_cast<float>(dblock.header_timestamp - 431394235384);
   
-  // std::cout << milliseconds << std::endl;
-
   // ignore parameter0 .. parameter3 forward 4*3*16 bits = 24 bytes
   ifs.seekg(+24, std::ios_base::cur);  
   uint16_t eventsinthisbuffer = (dblock.bufferlength - 20)/3;
@@ -107,7 +103,7 @@ void lmfile::parsedatablock()
   uint64_t eventRAW;
   uint8_t eventtype;
   uint32_t eventdata;
-  uint64_t eventtimestamp;
+  eventtime_t eventtimestamp;
   
   for (int i = 0; i < eventsinthisbuffer; i++)
   {
@@ -123,7 +119,16 @@ void lmfile::parsedatablock()
   std::bitset<48> b1(eventRAW);
   std::bitset<64> b2(eventtimestamp);
     
-  float milliseconds =  0.0001 * static_cast<float>((dblock.header_timestamp + eventtimestamp) - 431394235384);
+  
+  if (firsttimestamp == 0) {
+    firsttimestamp = dblock.header_timestamp + eventtimestamp; 
+  }
+  
+   
+  float milliseconds = timestamptomilliseconds(dblock.header_timestamp + eventtimestamp, firsttimestamp);
+  
+  std::cout << milliseconds << std::endl;
+
   
   // std::cout << b1 << " : " << b2 << "==> " << milliseconds << std::endl;
   
@@ -174,9 +179,10 @@ bool lmfile::EOFahead()
   return (sequenceRAW==filesignature);
 }
 
-float lmfile::timestamptomilliseconds(uint64_t& ts)
+
+float lmfile::timestamptomilliseconds(eventtime_t& ts, eventtime_t& offset = 0)
 {
-  float milliseconds =  0.0001 * static_cast<float>(ts);
+  float milliseconds =  0.0001 * static_cast<float>(ts - offset);
   return milliseconds;
 }
 
@@ -192,7 +198,7 @@ void lmfile::el_addevent (eventtime_t& mytime, uint8_t& mysource)
 
 void lmfile::el_printallevents()
 {
-  for( int a = 0; a < el_lastevent; a = a + 1 )
+  for( uint64_t a = 0; a < el_lastevent; a = a + 1 )
    {
      uint16_t sourcebuffer = el_sources[a]; 
      std::cout << sourcebuffer << " , " << el_times[a] << std::endl;

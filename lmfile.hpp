@@ -2,6 +2,13 @@
 #ifndef LMFILE_H
 #define LMFILE_H
 
+#define eventtime_t uint64_t 
+
+//this was 
+//typedef uint64_t eventtime_t;  
+// but had no time now to find out, how to fix problems with this. Perhaps try the new "using" technique?
+
+
 #include <cstdint>
 #include <fstream>      // std::ifstream
 #include <string>     // std::string, std::stoull FIXME: Do I need this line *here*?
@@ -24,7 +31,6 @@ struct datablock{
   
 const uint64_t MAX_EVENTS = 100000000; // 9 Byte per event
 
-typedef uint64_t eventtime_t;  
 typedef uint64_t ufilesize_t;
 
 
@@ -56,7 +62,7 @@ class lmfile
     ufilesize_t showfilesize();
     void parseheader();
     bool EOFahead();
-    float timestamptomilliseconds(uint64_t& ts);
+    float timestamptomilliseconds(eventtime_t& ts, eventtime_t& offset);
     
     void el_addevent(eventtime_t& mytime, uint8_t& mysource);
     void el_printallevents();

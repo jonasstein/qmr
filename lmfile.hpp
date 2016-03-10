@@ -25,6 +25,7 @@ struct datablock{
      uint64_t header_timestamp=0;
    };
 
+   
   const uint64_t headersignature     = 0x00005555AAAAFFFF;
   const uint64_t datablocksignature  = 0x0000FFFF5555AAAA;
   const uint64_t filesignature       = 0xFFFFAAAA55550000;
@@ -32,7 +33,7 @@ struct datablock{
 const uint64_t MAX_EVENTS = 100000000; // 9 Byte per event
 
 typedef uint64_t ufilesize_t;
-
+ 
 
 class lmfile
 {
@@ -45,9 +46,13 @@ class lmfile
        
     //event list items
     eventtime_t el_times[MAX_EVENTS];
-    uint8_t  el_sources[MAX_EVENTS];
+    char el_IDbyte[MAX_EVENTS]; //ID (1 bit) = 1 TrigID (3 bit) DataID (4)
     uint64_t el_lastevent;
 
+    const char IDmon1 = 0b11110000;
+    const char IDmon2 = 0b11110001;
+    const char IDmon3 = 0b11110010;
+    const char IDmon4 = 0b11110011;
     
    /* uint64_t file_last_position_after_signature; // points to first char behind the last signature
     uint16_t file_last_signature_type; // 1=header, 2=databuffer, 3= eofsig, -1=else
@@ -56,16 +61,18 @@ class lmfile
   public:
     lmfile( const char* mypath );
     ~lmfile();
+    float timestamptomilliseconds(eventtime_t& ts, eventtime_t& offset);
     uint16_t readWord();
     uint64_t read64bit();
     void parsedatablock();
     ufilesize_t showfilesize();
     void parseheader();
     bool EOFahead();
-    float timestamptomilliseconds(eventtime_t& ts, eventtime_t& offset);
+    
     
     void el_addevent(eventtime_t& mytime, uint8_t& mysource);
     void el_printallevents();
+    
 };
 
 // This is the end of the header guard

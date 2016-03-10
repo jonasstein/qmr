@@ -7,7 +7,6 @@
 #include <fstream>      // std::ifstream
 #include <string>     // std::string, std::stoull
 #include <stdio.h>
-//#include <stdint.h>
 #include <byteswap.h> // http://stackoverflow.com/questions/105252/how-do-i-convert-between-big-endian-and-little-endian-values-in-c
 #include <iomanip>
 #include <math.h>       /* pow */
@@ -16,18 +15,29 @@
 
 #include <bitset>
 
+#include "histogram.hpp"
 
+#define eventtime_t uint64_t 
+  
 
 lmfile::lmfile(char const * mypath) : ifs ( mypath, std::ifstream::ate | std::ifstream::binary ), filesize ( 0 ),  firsttimestamp ( 0 ), el_lastevent ( 0 )
 {
    // "ate" placed cursor to EOF, we can read out the filesize now and go to start.
    filesize = ifs.tellg();
    ifs.seekg (0, ifs.beg);
+   
+   
 }
 
 lmfile::~lmfile()
 {
   std::cout << "DESTROY! \n";
+}
+
+float lmfile::timestamptomilliseconds(eventtime_t& ts, eventtime_t& offset)
+{
+  float milliseconds =  0.0001 * static_cast<float>(ts - offset);
+  return milliseconds;
 }
 
 uint16_t lmfile::readWord ( )
@@ -101,8 +111,8 @@ void lmfile::parsedatablock()
   uint64_t eventMi;
   uint64_t eventHi;
   uint64_t eventRAW;
-  uint8_t eventtype;
-  uint32_t eventdata;
+  char eventtype;
+  //uint32_t eventdata; //Counter, Timer or ADC value not needed yet
   eventtime_t eventtimestamp;
   
   for (int i = 0; i < eventsinthisbuffer; i++)
@@ -124,8 +134,10 @@ void lmfile::parsedatablock()
     firsttimestamp = dblock.header_timestamp + eventtimestamp; 
   }
   
-   
-  float milliseconds = timestamptomilliseconds(dblock.header_timestamp + eventtimestamp, firsttimestamp);
+  eventtime_t timeofthisevent = dblock.header_timestamp + eventtimestamp;
+  
+  float milliseconds = lmfile::timestamptomilliseconds(timeofthisevent, firsttimestamp);
+  //float milliseconds = lmfile::timestamptomilliseconds(tester, tester);
   
   std::cout << milliseconds << std::endl;
 
@@ -167,7 +179,6 @@ void lmfile::parseheader()
 
   pos_dataheader = ifs.tellg();
   SHOWdec(pos_dataheader);
-      
 }
 
 
@@ -180,28 +191,21 @@ bool lmfile::EOFahead()
 }
 
 
-float lmfile::timestamptomilliseconds(eventtime_t& ts, eventtime_t& offset = 0)
-{
-  float milliseconds =  0.0001 * static_cast<float>(ts - offset);
-  return milliseconds;
-}
-
-
-void lmfile::el_addevent (eventtime_t& mytime, uint8_t& mysource)
+void lmfile::el_addevent (eventtime_t& mytime, uint8_t& myIDbyte)
 {
   assert((el_lastevent + 1) < MAX_EVENTS);
-  el_sources[el_lastevent + 1] = mysource;
+  el_IDbyte[el_lastevent + 1] = myIDbyte;
   el_times[el_lastevent + 1] = mytime;
   el_lastevent += 1;
   //SHOWdec(el_lastevent);
+  
 }
 
 void lmfile::el_printallevents()
 {
   for( uint64_t a = 0; a < el_lastevent; a = a + 1 )
    {
-     uint16_t sourcebuffer = el_sources[a]; 
+     uint16_t sourcebuffer = el_IDbyte[a]; 
      std::cout << sourcebuffer << " , " << el_times[a] << std::endl;
-     //printf("%d , %llu \n", el_sources[a], el_times[a]);
   }
 }

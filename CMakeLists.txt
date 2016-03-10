@@ -1,6 +1,6 @@
 cmake_minimum_required (VERSION 2.6)
 project (qmread)
-add_executable(qmread main.cpp lmfile.cpp)
+add_executable(qmr main.cpp lmfile.cpp)
 
 
 

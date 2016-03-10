@@ -23,7 +23,9 @@
 int main () {
  
   lmfile* limo;
-  limo = new lmfile("180sec_2chan_5kHz_pm_4kHz_FM_4Hz_Trigger1Hz.mdat");
+  
+  limo = new lmfile("/home/stein/my/prj/qmr/data/M215/M215_4000ms_5000mVIN_HiZ_monitor.mdat");
+  //limo = new lmfile("180sec_2chan_5kHz_pm_4kHz_FM_4Hz_Trigger1Hz.mdat");
   
   std::cout << limo->showfilesize() << " Bytes" << std::endl ; 
   
@@ -36,6 +38,8 @@ int main () {
   limo->parsedatablock();
   fileEOF = limo->EOFahead();
   };
+  
+  limo->el_printallevents();
   delete(limo);
   
   return 0;

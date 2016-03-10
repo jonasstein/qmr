@@ -5,13 +5,12 @@
 #include <cstdint>
 #include <fstream>      // std::ifstream
 #include <string>     // std::string, std::stoull FIXME: Do I need this line *here*?
-#include "eventlist.hpp" // definition of events, eventlists 
 
 struct datablock{
      uint16_t bufferlength;
      uint16_t buffertype;
      uint16_t headerlength; // number of 16 bit words in the list mode file header
-     uint16_t buffernumber = 0;
+     uint16_t buffernumber = 65535;
      uint16_t runid;
      uint8_t mcpdid;
      bool daqrunning;
@@ -23,20 +22,18 @@ struct datablock{
   const uint64_t datablocksignature  = 0x0000FFFF5555AAAA;
   const uint64_t filesignature       = 0xFFFFAAAA55550000;
   
-const uint64_t MAX_EVENTS = 1000000;
+const uint64_t MAX_EVENTS = 100000000; // 9 Byte per event
 
 typedef uint64_t eventtime_t;  
-typedef uint64_t u_filesize_t;
-// typedef uint64_t eventtime_t; // now in eventlist
+typedef uint64_t ufilesize_t;
 
 
 class lmfile
 {
   private:
     std::ifstream ifs;
-    //char myfilename[80];
-    u_filesize_t filesize;
-    u_filesize_t pos_dataheader;
+    ufilesize_t filesize;
+    ufilesize_t pos_dataheader;
     eventtime_t firsttimestamp;
     datablock dblock; 
        
@@ -56,13 +53,13 @@ class lmfile
     uint16_t readWord();
     uint64_t read64bit();
     void parsedatablock();
-    u_filesize_t showfilesize();
+    ufilesize_t showfilesize();
     void parseheader();
     bool EOFahead();
     float timestamptomilliseconds(uint64_t& ts);
     
-    void el_addevent(uint8_t mysource, eventtime_t mytime);
-
+    void el_addevent(eventtime_t& mytime, uint8_t& mysource);
+    void el_printallevents();
 };
 
 // This is the end of the header guard

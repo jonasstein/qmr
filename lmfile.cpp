@@ -30,9 +30,9 @@ lmfile::~lmfile()
   std::cout << "DESTROY! \n";
 }
 
-u_int16_t lmfile::readWord ( )
+uint16_t lmfile::readWord ( )
 {
-  u_int16_t sequenceRAW;
+  uint16_t sequenceRAW;
   ifs.read ( reinterpret_cast<char *> ( &sequenceRAW ),2 );
   // nb: little endian!
   
@@ -40,50 +40,56 @@ u_int16_t lmfile::readWord ( )
 }
 
 
-u_int64_t lmfile::read64bit ( )
+uint64_t lmfile::read64bit ( )
 {
-  u_int64_t sequenceRAW = 0;
+  uint64_t sequenceRAW = 0;
   ifs.read ( reinterpret_cast<char *> ( &sequenceRAW ),8 );
 // nb: little endian!
   return __builtin_bswap64 ( sequenceRAW );
 }
 
 
-u_filesize_t lmfile::showfilesize()
+ufilesize_t lmfile::showfilesize()
 {
   return lmfile::filesize;
 }
 
 void lmfile::parsedatablock()
 {
-  u_filesize_t startposition = ifs.tellg();
-  SHOWdec(startposition);
+  ufilesize_t startposition = ifs.tellg();
+  //SHOWdec(startposition);
   
   dblock.bufferlength = lmfile::readWord();
   dblock.buffertype = lmfile::readWord();
   dblock.headerlength = lmfile::readWord();
   
-  u_int16_t oldbuffernumber = dblock.buffernumber;
+  uint16_t oldbuffernumber = dblock.buffernumber;
   dblock.buffernumber = lmfile::readWord();
-  assert(oldbuffernumber < dblock.buffernumber); // buffernumber should increase!
+  //if (oldbuffernumber >= dblock.buffernumber)
+  //{std::cout << "Error: Buffernumber not increasing" << std::endl; }
+  if (oldbuffernumber != 65535){
+    // buffernumber should increase!
+    assert((oldbuffernumber +1 )== dblock.buffernumber);
+   } 
+  else{
+    std::cout << "nocheck" << std::endl;
+  }                                                       // Ignore the test for first dataset
   
   dblock.runid = lmfile::readWord();
   
-  u_int16_t wordRAW = lmfile::readWord(); // mcpdid + status(DAQ running, sync OK) in one word
+  uint16_t wordRAW = lmfile::readWord(); // mcpdid + status(DAQ running, sync OK) in one word
   dblock.mcpdid = wordRAW >> 8;
   dblock.daqrunning = wordRAW & 0b00000001;  //should be 1 usually
   dblock.syncok = wordRAW & 0b00000010; //should be 0 usually, we do not use a sync line
   
   // read header time stamp 
-  u_int64_t wordRAWLo = lmfile::readWord(); 
-  u_int64_t wordRAWMi = lmfile::readWord();
-  u_int64_t wordRAWHi = lmfile::readWord();
+  uint64_t wordRAWLo = lmfile::readWord(); 
+  uint64_t wordRAWMi = lmfile::readWord();
+  uint64_t wordRAWHi = lmfile::readWord();
   // FIXME: (cosmetic and to learn style) this is ugly code in my eyes. I want to read in 16bit and merge it to 64 bit in one line.
   dblock.header_timestamp = (wordRAWHi << 32) + (wordRAWMi << 16) + (wordRAWLo << 0);
 
-  
-  //std::cout << dblock.syncok << std::endl;  
-  
+   
    
   float milliseconds =  0.0001 * static_cast<float>(dblock.header_timestamp - 431394235384);
   
@@ -91,17 +97,17 @@ void lmfile::parsedatablock()
 
   // ignore parameter0 .. parameter3 forward 4*3*16 bits = 24 bytes
   ifs.seekg(+24, std::ios_base::cur);  
-  u_int16_t eventsinthisbuffer = (dblock.bufferlength - 20)/3;
+  uint16_t eventsinthisbuffer = (dblock.bufferlength - 20)/3;
   
   //SHOWdec(eventsinthisbuffer);
   
-  u_int64_t eventLo;
-  u_int64_t eventMi;
-  u_int64_t eventHi;
-  u_int64_t eventRAW;
-  u_int8_t eventtype;
-  u_int32_t eventdata;
-  u_int64_t eventtimestamp;
+  uint64_t eventLo;
+  uint64_t eventMi;
+  uint64_t eventHi;
+  uint64_t eventRAW;
+  uint8_t eventtype;
+  uint32_t eventdata;
+  uint64_t eventtimestamp;
   
   for (int i = 0; i < eventsinthisbuffer; i++)
   {
@@ -111,7 +117,7 @@ void lmfile::parsedatablock()
   eventRAW = (eventHi << 32) + (eventMi << 16) + (eventLo << 0);
   
   
-  eventtype = (eventRAW  >> 40);//& 0x0F ;
+  eventtype = (eventRAW  >> 40);
   eventtimestamp = eventRAW & ((0b1 << 20) - 1);
   
   std::bitset<48> b1(eventRAW);
@@ -119,15 +125,19 @@ void lmfile::parsedatablock()
     
   float milliseconds =  0.0001 * static_cast<float>((dblock.header_timestamp + eventtimestamp) - 431394235384);
   
-  std::cout << b1 << " : " << b2 << "==> " << milliseconds << std::endl;
+  // std::cout << b1 << " : " << b2 << "==> " << milliseconds << std::endl;
+  
+  uint8_t testsource = eventtype;  
+  lmfile::el_addevent(eventtimestamp, testsource);   //FIXME should be source
+  
   }
   
   //go to end of datablock
   
   ifs.seekg(startposition + (dblock.bufferlength * 2), std::ios_base::beg);
-  SHOWdec(ifs.tellg());
+  //SHOWdec(ifs.tellg());
   
-  u_int64_t sequenceRAW = lmfile::read64bit ( );
+  uint64_t sequenceRAW = lmfile::read64bit ( );
   assert(sequenceRAW == datablocksignature);
 }
 
@@ -147,36 +157,45 @@ void lmfile::parseheader()
   dblock.headerlength = std::stoi (sustri,nullptr,10);
   assert(dblock.headerlength==2); // we do not know about files <> 2 header lines yet.
   
-  u_int64_t sequenceRAW = lmfile::read64bit ( );
+  uint64_t sequenceRAW = lmfile::read64bit ( );
   assert(sequenceRAW == headersignature);
 
   pos_dataheader = ifs.tellg();
   SHOWdec(pos_dataheader);
-  
-  dblock.buffernumber = 0;
-  
+      
 }
 
 
 bool lmfile::EOFahead()
 {
-  u_int64_t sequenceRAW = lmfile::read64bit ( );
+  uint64_t sequenceRAW = lmfile::read64bit ( );
   ifs.seekg(-8, std::ios_base::cur);
 
   return (sequenceRAW==filesignature);
 }
 
-float lmfile::timestamptomilliseconds(u_int64_t& ts)
+float lmfile::timestamptomilliseconds(uint64_t& ts)
 {
   float milliseconds =  0.0001 * static_cast<float>(ts);
   return milliseconds;
 }
 
 
-void eventlist::el_addevent ( uint8_t mysource, eventtime_t mytime )
+void lmfile::el_addevent (eventtime_t& mytime, uint8_t& mysource)
 {
   assert((el_lastevent + 1) < MAX_EVENTS);
   el_sources[el_lastevent + 1] = mysource;
   el_times[el_lastevent + 1] = mytime;
-  lastevent += 1;
+  el_lastevent += 1;
+  //SHOWdec(el_lastevent);
+}
+
+void lmfile::el_printallevents()
+{
+  for( int a = 0; a < el_lastevent; a = a + 1 )
+   {
+     uint16_t sourcebuffer = el_sources[a]; 
+     std::cout << sourcebuffer << " , " << el_times[a] << std::endl;
+     //printf("%d , %llu \n", el_sources[a], el_times[a]);
+  }
 }

@@ -1,6 +1,7 @@
 CMakeFiles/*
 *.mdat
 data/*
+Makefile
 
 # Compiled Object files
 *.slo

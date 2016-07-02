@@ -32,7 +32,7 @@ lmfile::~lmfile()
   std::cout << "DESTROY! \n";
 }
 
-static double lmfile::timestamptomilliseconds(eventtime_t& ts, eventtime_t& offset)
+double lmfile::timestamptomilliseconds(eventtime_t& ts, eventtime_t& offset)
 {
   //float milliseconds =  0.0001 * static_cast<float>(ts - offset);  FIXME Do I really need static_cast here???
   double milliseconds= 0.0001 * static_cast<double>(ts - offset);

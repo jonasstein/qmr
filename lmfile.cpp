@@ -25,8 +25,6 @@ lmfile::lmfile(char const * mypath) : ifs ( mypath, std::ifstream::ate | std::if
    // "ate" placed cursor to EOF, we can read out the filesize now and go to start.
    filesize = ifs.tellg();
    ifs.seekg (0, ifs.beg);
-   
-   
 }
 
 lmfile::~lmfile()
@@ -34,7 +32,7 @@ lmfile::~lmfile()
   std::cout << "DESTROY! \n";
 }
 
-double lmfile::timestamptomilliseconds(eventtime_t& ts, eventtime_t& offset)
+static double lmfile::timestamptomilliseconds(eventtime_t& ts, eventtime_t& offset)
 {
   //float milliseconds =  0.0001 * static_cast<float>(ts - offset);  FIXME Do I really need static_cast here???
   double milliseconds= 0.0001 * static_cast<double>(ts - offset);

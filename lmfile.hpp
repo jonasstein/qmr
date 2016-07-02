@@ -72,7 +72,7 @@ class lmfile
     
     void el_addevent(eventtime_t& mytime, uint8_t& mysource);
     void el_printallevents();
-    
+    void printhistogram();
 };
 
 // This is the end of the header guard

@@ -17,8 +17,8 @@
 
 #include "histogram.hpp"
 
+#include <gtest/gtest.h> // add google test 
 #define eventtime_t uint64_t 
-  
 
 lmfile::lmfile(char const * mypath) : ifs ( mypath, std::ifstream::ate | std::ifstream::binary ), filesize ( 0 ),  firsttimestamp ( 0 ), el_lastevent ( 0 )
 {
@@ -208,4 +208,23 @@ void lmfile::el_printallevents()
      uint16_t sourcebuffer = el_IDbyte[a]; 
      std::cout << sourcebuffer << " , " << el_times[a] << std::endl;
   }
+}
+
+void lmfile::printhistogram()
+{
+  histogram* histo;
+  
+  
+  histo = new histogram(100, 100000);
+  
+  for( uint64_t a = 0; a < el_lastevent; a = a + 1 )
+   {
+     uint16_t sourcebuffer = el_IDbyte[a]; 
+     
+     if (sourcebuffer == IDmon1){
+     histo->put(el_times[a]);  
+     }
+  }
+  histo->print();
+  
 }

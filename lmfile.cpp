@@ -34,9 +34,11 @@ lmfile::~lmfile()
   std::cout << "DESTROY! \n";
 }
 
-float lmfile::timestamptomilliseconds(eventtime_t& ts, eventtime_t& offset)
+double lmfile::timestamptomilliseconds(eventtime_t& ts, eventtime_t& offset)
 {
-  float milliseconds =  0.0001 * static_cast<float>(ts - offset);
+  //float milliseconds =  0.0001 * static_cast<float>(ts - offset);  FIXME Do I really need static_cast here???
+  double milliseconds= 0.0001 * static_cast<double>(ts - offset);
+  
   return milliseconds;
 }
 
@@ -137,7 +139,6 @@ void lmfile::parsedatablock()
   eventtime_t timeofthisevent = dblock.header_timestamp + eventtimestamp;
   
   float milliseconds = lmfile::timestamptomilliseconds(timeofthisevent, firsttimestamp);
-  //float milliseconds = lmfile::timestamptomilliseconds(tester, tester);
   
   std::cout << milliseconds << std::endl;
 

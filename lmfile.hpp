@@ -61,7 +61,7 @@ class lmfile
   public:
     lmfile( const char* mypath );
     ~lmfile();
-    float timestamptomilliseconds(eventtime_t& ts, eventtime_t& offset);
+    double timestamptomilliseconds(eventtime_t& ts, eventtime_t& offset);
     uint16_t readWord();
     uint64_t read64bit();
     void parsedatablock();

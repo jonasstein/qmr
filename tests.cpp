@@ -6,7 +6,11 @@
 TEST(timestamptomilliseconds, PositiveNos) { 
     eventtime_t truncatedtime = 0;
     eventtime_t offsettime = 0;
-  ASSERT_DOUBLE_EQ(0, lmfile::timestamptomilliseconds(truncatedtime, offsettime ));
+    ASSERT_DOUBLE_EQ(0, lmfile::timestamptomilliseconds(truncatedtime, offsettime ));
+
+    truncatedtime = 30040; // 100 ns * 10 * 1000 = ms
+    offsettime = 10000;
+    ASSERT_DOUBLE_EQ(2.004, lmfile::timestamptomilliseconds(truncatedtime, offsettime ));
 }
  
  

@@ -10,6 +10,10 @@ TEST(lmfile, ConstructorFromTestFile) {
   lmfile* limo;
   limo = new lmfile(testFileName);
   EXPECT_EQ(5658470, limo->getfilesize()) << "wrong file size calculated!";
+
+  limo->parsefileheader(); 
+  EXPECT_EQ(2, limo->getfileHeaderLength()) << "wrong number of file header lines (mostly 2)!";
+  
   delete(limo);
 }
 

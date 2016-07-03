@@ -64,6 +64,12 @@ ufilesize_t lmfile::getfilesize()
   return lmfile::filesize;
 }
 
+ufilesize_t lmfile::getfileHeaderLength()
+{
+  return lmfile::fileHeaderLength;
+}
+
+
 
 void lmfile::parsedatablock()
 {

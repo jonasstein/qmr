@@ -67,6 +67,7 @@ class lmfile
     uint64_t read64bit();
     void parsedatablock();
     ufilesize_t getfilesize();
+    ufilesize_t getfileHeaderLength();
     void parsefileheader();
     bool EOFahead();
     

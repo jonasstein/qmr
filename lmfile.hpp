@@ -14,16 +14,15 @@
 #include <string>     // std::string, std::stoull FIXME: Do I need this line *here*?
 
 struct datablock{
-     uint16_t bufferlength;
-     uint16_t buffertype;
-     uint16_t headerlength; // number of 16 bit words in the list mode file header
-     uint16_t buffernumber = 65535;
+     uint16_t metaBufferlength;
+     uint16_t metaBuffertype;
+     uint16_t metaHeaderlength; // number of 16 bit words in the list mode file header
+     uint16_t metaBuffernumber = 65535;
      uint16_t runid;
      uint8_t mcpdid;
      bool daqrunning;
      bool syncok;
-     uint64_t header_timestamp=0;
-     //uint64_t header_timestamp_ns=0; FIXME change to nano seconds!
+     uint64_t header_timestamp_ns=0; 
    };
 
    
@@ -34,20 +33,20 @@ struct datablock{
   const uint64_t MAX_EVENTS = 100000000; // 9 Byte per event
 
 typedef uint64_t ufilesize_t;
- 
 
 class lmfile
 {
   private:
     std::ifstream ifs;
     ufilesize_t filesize;
+    ufilesize_t fileHeaderLength; // header length: nnnnn lines 
     ufilesize_t pos_dataheader;
-    eventtime_t firsttimestamp;
+    eventtime_t firsttimestamp_ns;
     datablock dblock; 
        
     //event list items
-    eventtime_t el_times[MAX_EVENTS]; 
-    // eventtime_t el_times_ns[MAX_EVENTS]; FIXME change to nano seconds!
+    eventtime_t el_times_ns[MAX_EVENTS]; 
+    
     char el_IDbyte[MAX_EVENTS]; //ID (1 bit) = 1 TrigID (3 bit) DataID (4)
     uint64_t el_lastevent;
 
@@ -63,16 +62,16 @@ class lmfile
   public:
     lmfile( const char* mypath );
     ~lmfile();
-    static double timestamptomilliseconds(eventtime_t& ts, eventtime_t& offset);
+    static double timestamptomilliseconds(eventtime_t& ts_ns, eventtime_t& offset_ns);
     uint16_t readWord();
     uint64_t read64bit();
     void parsedatablock();
-    ufilesize_t showfilesize();
-    void parseheader();
+    ufilesize_t getfilesize();
+    void parsefileheader();
     bool EOFahead();
     
     
-    void el_addevent(eventtime_t& mytime, uint8_t& mysource);
+    void el_addevent(eventtime_t& mytime_ns, uint8_t& mysource);
     void el_printallevents();
     void printhistogram();
 };

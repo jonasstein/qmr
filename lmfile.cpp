@@ -20,7 +20,7 @@
 #include <gtest/gtest.h> // add google test 
 #define eventtime_t uint64_t 
 
-lmfile::lmfile(char const * mypath) : ifs ( mypath, std::ifstream::ate | std::ifstream::binary ), filesize ( 0 ),  firsttimestamp ( 0 ), el_lastevent ( 0 )
+lmfile::lmfile(char const * mypath) : ifs ( mypath, std::ifstream::ate | std::ifstream::binary ), filesize ( 0 ),  firsttimestamp_ns ( 0 ), el_lastevent ( 0 )
 {
    // "ate" placed cursor to EOF, we can read out the filesize now and go to start.
    filesize = ifs.tellg();
@@ -30,12 +30,12 @@ lmfile::lmfile(char const * mypath) : ifs ( mypath, std::ifstream::ate | std::if
 
 lmfile::~lmfile()
 {
-  std::cout << "closed file! \n";
+  //std::cout << "closed file! \n";
 }
 
-double lmfile::timestamptomilliseconds(eventtime_t& ts, eventtime_t& offset)
+double lmfile::timestamptomilliseconds(eventtime_t& ts_ns, eventtime_t& offset_ns)
 {
-  double milliseconds= 0.0001 * static_cast<double>(ts - offset);
+  double milliseconds= 0.000001 * static_cast<double>(ts_ns - offset_ns);
   return milliseconds;
   //FIXME change this to uint64_t
 }
@@ -59,27 +59,27 @@ uint64_t lmfile::read64bit ( )
 }
 
 
-ufilesize_t lmfile::showfilesize()
+ufilesize_t lmfile::getfilesize()
 {
   return lmfile::filesize;
 }
+
 
 void lmfile::parsedatablock()
 {
   ufilesize_t startposition = ifs.tellg();
   //SHOWdec(startposition);
   
-  dblock.bufferlength = lmfile::readWord();
-  dblock.buffertype = lmfile::readWord();
-  dblock.headerlength = lmfile::readWord();
+  dblock.metaBufferlength = lmfile::readWord();
+  dblock.metaBuffertype = lmfile::readWord();
+  dblock.metaHeaderlength = lmfile::readWord();
   
-  uint16_t oldbuffernumber = dblock.buffernumber;
-  dblock.buffernumber = lmfile::readWord();
-  //if (oldbuffernumber >= dblock.buffernumber)
-  //{std::cout << "Error: Buffernumber not increasing" << std::endl; }
+  uint16_t oldbuffernumber = dblock.metaBuffernumber;
+  dblock.metaBuffernumber = lmfile::readWord();
+  
   if (oldbuffernumber != 65535){
     // buffernumber should increase!
-    assert((oldbuffernumber +1 )== dblock.buffernumber);
+    assert((oldbuffernumber +1 )== dblock.metaBuffernumber);
    } 
   else{
     std::cout << "nocheck" << std::endl;
@@ -97,12 +97,12 @@ void lmfile::parsedatablock()
   uint64_t wordRAWMi = lmfile::readWord();
   uint64_t wordRAWHi = lmfile::readWord();
   // FIXME: (cosmetic and to learn style) this is ugly code in my eyes. I want to read in 16bit and merge it to 64 bit in one line.
-  dblock.header_timestamp = (wordRAWHi << 32) + (wordRAWMi << 16) + (wordRAWLo << 0);
+  dblock.header_timestamp_ns = ((wordRAWHi << 32) + (wordRAWMi << 16) + (wordRAWLo << 0)) * 100;
 
   
   // ignore parameter0 .. parameter3 forward 4*3*16 bits = 24 bytes
   ifs.seekg(+24, std::ios_base::cur);  
-  uint16_t eventsinthisbuffer = (dblock.bufferlength - 20)/3;
+  uint16_t eventsinthisbuffer = (dblock.metaBufferlength - 20)/3;
   
   //SHOWdec(eventsinthisbuffer);
   
@@ -112,7 +112,7 @@ void lmfile::parsedatablock()
   uint64_t eventRAW;
   char eventtype;
   //uint32_t eventdata; //Counter, Timer or ADC value not needed yet
-  eventtime_t eventtimestamp;
+  eventtime_t eventtimestamp_ns;
   
   for (int i = 0; i < eventsinthisbuffer; i++)
   {
@@ -123,41 +123,31 @@ void lmfile::parsedatablock()
   
   
   eventtype = (eventRAW  >> 40);
-  eventtimestamp = eventRAW & ((0b1 << 20) - 1);
+  eventtimestamp_ns = (eventRAW & ((0b1 << 20) - 1)) * 100;
   
   std::bitset<48> b1(eventRAW);
-  std::bitset<64> b2(eventtimestamp);
-    
+  std::bitset<64> b2(eventtimestamp_ns);
   
-  if (firsttimestamp == 0) {
-    firsttimestamp = dblock.header_timestamp + eventtimestamp; 
+  if (firsttimestamp_ns == 0) {
+    firsttimestamp_ns = dblock.header_timestamp_ns + eventtimestamp_ns; 
   }
   
-  eventtime_t timeofthisevent = dblock.header_timestamp + eventtimestamp;
-  
-  float milliseconds = lmfile::timestamptomilliseconds(timeofthisevent, firsttimestamp);
-  
-  std::cout << milliseconds << std::endl;
-
-  
-  // std::cout << b1 << " : " << b2 << "==> " << milliseconds << std::endl;
+  eventtime_t timeofthisevent_ns = dblock.header_timestamp_ns + eventtimestamp_ns;
   
   uint8_t testsource = eventtype;  
-  lmfile::el_addevent(eventtimestamp, testsource);   //FIXME should be source
-  
+  lmfile::el_addevent(eventtimestamp_ns, testsource);   //FIXME should be source
   }
   
   //go to end of datablock
   
-  ifs.seekg(startposition + (dblock.bufferlength * 2), std::ios_base::beg);
+  ifs.seekg(startposition + (dblock.metaBufferlength * 2), std::ios_base::beg);
   //SHOWdec(ifs.tellg());
   
   uint64_t sequenceRAW = lmfile::read64bit ( );
   assert(sequenceRAW == datablocksignature);
 }
 
-
-void lmfile::parseheader()
+void lmfile::parsefileheader()
 {
   // read first line and parse secondline with number of lines
   std::string thisline;
@@ -169,14 +159,14 @@ void lmfile::parseheader()
   std::string ss = ": ";
   int posi = thisline.find(ss);
   std::string sustri  = thisline.substr(posi+1,posi+4); // TODO  + 4 => EOL
-  dblock.headerlength = std::stoi (sustri,nullptr,10);
-  assert(dblock.headerlength==2); // we do not know about files <> 2 header lines yet.
+  fileHeaderLength = std::stoi (sustri,nullptr,10);
+  assert(fileHeaderLength==2); // we do not know about files <> 2 header lines yet.
   
   uint64_t sequenceRAW = lmfile::read64bit ( );
   assert(sequenceRAW == headersignature);
 
   pos_dataheader = ifs.tellg();
-  SHOWdec(pos_dataheader);
+  printf("End of file header at %lu Bytes\n\n", pos_dataheader );
 }
 
 
@@ -189,14 +179,12 @@ bool lmfile::EOFahead()
 }
 
 
-void lmfile::el_addevent (eventtime_t& mytime, uint8_t& myIDbyte)
+void lmfile::el_addevent (eventtime_t& mytime_ns, uint8_t& myIDbyte)
 {
   assert((el_lastevent + 1) < MAX_EVENTS);
   el_IDbyte[el_lastevent + 1] = myIDbyte;
-  el_times[el_lastevent + 1] = mytime;
+  el_times_ns[el_lastevent + 1] = mytime_ns;
   el_lastevent += 1;
-  //SHOWdec(el_lastevent);
-  
 }
 
 void lmfile::el_printallevents()
@@ -204,9 +192,12 @@ void lmfile::el_printallevents()
   for( uint64_t a = 0; a < el_lastevent; a = a + 1 )
    {
      uint16_t sourcebuffer = el_IDbyte[a]; 
-     std::cout << sourcebuffer << " , " << el_times[a] << std::endl;
+     // FIXME print more here + make headline
+     std::printf("%lu , %lu ns \n", (0xffff - sourcebuffer), el_times_ns[a]); // printf is much faster than cout here!
   }
 }
+
+
 
 void lmfile::printhistogram()
 {
@@ -220,7 +211,7 @@ void lmfile::printhistogram()
      uint16_t sourcebuffer = el_IDbyte[a]; 
      
      if (sourcebuffer == IDmon1){
-     histo->put(el_times[a]);  
+     histo->put(el_times_ns[a]);  
      }
   }
   histo->print();

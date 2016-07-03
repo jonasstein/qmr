@@ -28,9 +28,8 @@ int main () {
   limo = new lmfile("180sec_2chan_5kHz_pm_4kHz_FM_4Hz_Trigger1Hz.mdat");
   
   std::cout << "File size: " << limo->getfilesize() << " Bytes" << std::endl ; 
-  
-  limo->parsefileheader();
-  
+ 
+ 
   bool fileEOF=false;
   
   while (fileEOF == false)

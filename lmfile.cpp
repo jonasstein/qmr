@@ -26,6 +26,9 @@ lmfile::lmfile(char const * mypath) : ifs ( mypath, std::ifstream::ate | std::if
    filesize = ifs.tellg();
    assert(filesize > 0);
    ifs.seekg (0, ifs.beg);
+   
+   lmfile::parsefileheader();
+   
 }
 
 lmfile::~lmfile()

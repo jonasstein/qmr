@@ -37,6 +37,7 @@ double lmfile::timestamptomilliseconds(eventtime_t& ts, eventtime_t& offset)
 {
   double milliseconds= 0.0001 * static_cast<double>(ts - offset);
   return milliseconds;
+  //FIXME change this to uint64_t
 }
 
 uint16_t lmfile::readWord ( )
@@ -98,7 +99,6 @@ void lmfile::parsedatablock()
   // FIXME: (cosmetic and to learn style) this is ugly code in my eyes. I want to read in 16bit and merge it to 64 bit in one line.
   dblock.header_timestamp = (wordRAWHi << 32) + (wordRAWMi << 16) + (wordRAWLo << 0);
 
-   
   
   // ignore parameter0 .. parameter3 forward 4*3*16 bits = 24 bytes
   ifs.seekg(+24, std::ios_base::cur);  

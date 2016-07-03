@@ -23,6 +23,7 @@ struct datablock{
      bool daqrunning;
      bool syncok;
      uint64_t header_timestamp=0;
+     //uint64_t header_timestamp_ns=0; FIXME change to nano seconds!
    };
 
    
@@ -30,7 +31,7 @@ struct datablock{
   const uint64_t datablocksignature  = 0x0000FFFF5555AAAA;
   const uint64_t filesignature       = 0xFFFFAAAA55550000;
   
-const uint64_t MAX_EVENTS = 100000000; // 9 Byte per event
+  const uint64_t MAX_EVENTS = 100000000; // 9 Byte per event
 
 typedef uint64_t ufilesize_t;
  
@@ -45,7 +46,8 @@ class lmfile
     datablock dblock; 
        
     //event list items
-    eventtime_t el_times[MAX_EVENTS];
+    eventtime_t el_times[MAX_EVENTS]; 
+    // eventtime_t el_times_ns[MAX_EVENTS]; FIXME change to nano seconds!
     char el_IDbyte[MAX_EVENTS]; //ID (1 bit) = 1 TrigID (3 bit) DataID (4)
     uint64_t el_lastevent;
 

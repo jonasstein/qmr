@@ -12,9 +12,10 @@ TEST(lmfile, ConstructorFromTestFile) {
   EXPECT_EQ(5658470, limo->getfilesize()) << "wrong file size calculated!";
 
   EXPECT_EQ(2, limo->getfileHeaderLength()) << "wrong number of file header lines (mostly 2)!";
-  
+  EXPECT_EQ(900259, limo->getNumberOfEvents()) << "wrong number of events!";
   delete(limo);
 }
+
 
 TEST(timestamptomilliseconds, OffsetCalculation) { 
     eventtime_t truncatedtime_ns = 0;

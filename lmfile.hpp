@@ -30,8 +30,10 @@ struct datablock{
   const uint64_t datablocksignature  = 0x0000FFFF5555AAAA;
   const uint64_t filesignature       = 0xFFFFAAAA55550000;
   
-  const uint64_t MAX_EVENTS = 100000000; // 9 Byte per event
+  const uint64_t     MAX_EVENTS = 100000000; // 9 byte per event
+ // const uint64_t MAX_DATABLOCKS = 10000000; // 42 byte per data block header  max age = 25 ns/Buffer;  max events = (1500-42)/6 = 243 events/Buffer
 
+  
 typedef uint64_t ufilesize_t;
 
 class lmfile
@@ -48,7 +50,7 @@ class lmfile
     eventtime_t el_times_ns[MAX_EVENTS]; 
     
     char el_IDbyte[MAX_EVENTS]; //ID (1 bit) = 1 TrigID (3 bit) DataID (4)
-    uint64_t el_lastevent;
+    uint64_t NumberOfEvents;
 
     const char IDmon1 = 0b11110000;
     const char IDmon2 = 0b11110001;
@@ -68,6 +70,7 @@ class lmfile
     void parsedatablock();
     ufilesize_t getfilesize();
     ufilesize_t getfileHeaderLength();
+    ufilesize_t getNumberOfEvents();
     void parsefileheader();
     bool EOFahead();
     

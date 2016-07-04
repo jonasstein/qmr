@@ -28,17 +28,14 @@ int main () {
   limo = new lmfile("180sec_2chan_5kHz_pm_4kHz_FM_4Hz_Trigger1Hz.mdat");
   
   std::cout << "File size: " << limo->getfilesize() << " Bytes" << std::endl ; 
- 
- 
-  bool fileEOF=false;
-  
-  while (fileEOF == false)
-  {
-  limo->parsedatablock();
-  fileEOF = limo->EOFahead();
-  };
   
   limo->el_printallevents();
+  std::cout << "\n\n Total events in this file: " << limo->getNumberOfEvents() << " " << std::endl ; 
+  
+  std::string userkey;
+  std::cout << "Press <Enter> to close and quit";
+  getline (std::cin, userkey);
+  
   delete(limo);
   
   return 0;

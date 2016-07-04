@@ -20,7 +20,7 @@
 #include <gtest/gtest.h> // add google test 
 #define eventtime_t uint64_t 
 
-lmfile::lmfile(char const * mypath) : ifs ( mypath, std::ifstream::ate | std::ifstream::binary ), filesize ( 0 ),  firsttimestamp_ns ( 0 ), el_lastevent ( 0 )
+lmfile::lmfile(char const * mypath) : ifs ( mypath, std::ifstream::ate | std::ifstream::binary ), filesize ( 0 ),  firsttimestamp_ns ( 0 ), NumberOfEvents ( 0 )
 {
    // "ate" placed cursor to EOF, we can read out the filesize now and go to start.
    filesize = ifs.tellg();
@@ -29,6 +29,13 @@ lmfile::lmfile(char const * mypath) : ifs ( mypath, std::ifstream::ate | std::if
    
    lmfile::parsefileheader();
    
+   bool fileEOF=false;
+  
+   while (fileEOF == false)
+   {
+   lmfile::parsedatablock();
+   fileEOF = lmfile::EOFahead();
+   };
 }
 
 lmfile::~lmfile()
@@ -72,7 +79,10 @@ ufilesize_t lmfile::getfileHeaderLength()
   return lmfile::fileHeaderLength;
 }
 
-
+ufilesize_t lmfile::getNumberOfEvents()
+{
+  return lmfile::NumberOfEvents;
+}
 
 void lmfile::parsedatablock()
 {
@@ -102,11 +112,11 @@ void lmfile::parsedatablock()
   dblock.syncok = wordRAW & 0b00000010; //should be 0 usually, we do not use a sync line
   
   // read header time stamp 
-  uint64_t wordRAWLo = lmfile::readWord(); 
-  uint64_t wordRAWMi = lmfile::readWord();
-  uint64_t wordRAWHi = lmfile::readWord();
+  uint64_t wordRAWLo = lmfile::readWord(); uint64_t wordRAWMi = lmfile::readWord(); uint64_t wordRAWHi = lmfile::readWord();
   // FIXME: (cosmetic and to learn style) this is ugly code in my eyes. I want to read in 16bit and merge it to 64 bit in one line.
   dblock.header_timestamp_ns = ((wordRAWHi << 32) + (wordRAWMi << 16) + (wordRAWLo << 0)) * 100;
+  //SHOWdec((wordRAWHi << 32) + (wordRAWMi << 16) + (wordRAWLo << 0));
+  //SHOWdec(dblock.header_timestamp_ns);
 
   
   // ignore parameter0 .. parameter3 forward 4*3*16 bits = 24 bytes
@@ -165,17 +175,16 @@ void lmfile::parsefileheader()
 
   // read second line  
   std::getline(ifs, thisline ); // header length: nnnnn lines
-  std::string ss = ": ";
-  int posi = thisline.find(ss);
+  int posi = thisline.find(": ");
   std::string sustri  = thisline.substr(posi+1,posi+4); // TODO  + 4 => EOL
   fileHeaderLength = std::stoi (sustri,nullptr,10);
-  assert(fileHeaderLength==2); // we do not know about files <> 2 header lines yet.
+  assert(fileHeaderLength==2); // we do not know about files <> 2 header lines yet. execute n-2 readlines here some day.
   
   uint64_t sequenceRAW = lmfile::read64bit ( );
   assert(sequenceRAW == headersignature);
 
-  pos_dataheader = ifs.tellg();
-  printf("End of file header at %lu Bytes\n\n", pos_dataheader );
+  //pos_dataheader = ifs.tellg();
+  //printf("End of file header at %lu Bytes\n\n", pos_dataheader );
 }
 
 
@@ -190,15 +199,15 @@ bool lmfile::EOFahead()
 
 void lmfile::el_addevent (eventtime_t& mytime_ns, uint8_t& myIDbyte)
 {
-  assert((el_lastevent + 1) < MAX_EVENTS);
-  el_IDbyte[el_lastevent + 1] = myIDbyte;
-  el_times_ns[el_lastevent + 1] = mytime_ns;
-  el_lastevent += 1;
+  assert((NumberOfEvents + 1) < MAX_EVENTS);
+  el_IDbyte[NumberOfEvents + 1] = myIDbyte;
+  el_times_ns[NumberOfEvents + 1] = mytime_ns;
+  NumberOfEvents += 1;
 }
 
 void lmfile::el_printallevents()
 {
-  for( uint64_t a = 0; a < el_lastevent; a = a + 1 )
+  for( uint64_t a = 0; a < NumberOfEvents; a = a + 1 )
    {
      uint16_t sourcebuffer = el_IDbyte[a]; 
      // FIXME print more here + make headline
@@ -215,7 +224,7 @@ void lmfile::printhistogram()
   
   histo = new histogram(100, 100000);
   
-  for( uint64_t a = 0; a < el_lastevent; a = a + 1 )
+  for( uint64_t a = 0; a < NumberOfEvents; a = a + 1 )
    {
      uint16_t sourcebuffer = el_IDbyte[a]; 
      

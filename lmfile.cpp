@@ -211,7 +211,7 @@ void lmfile::el_printallevents()
    {
      uint16_t sourcebuffer = el_IDbyte[a]; 
      // FIXME print more here + make headline
-     std::printf("%lu , %lu ns \n", (0xffff - sourcebuffer), el_times_ns[a]); // printf is much faster than cout here!
+     std::printf("%hu , %llu ns \n", (0xffff - sourcebuffer), el_times_ns[a]); // printf is much faster than cout here!
   }
 }
 

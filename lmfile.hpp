@@ -17,7 +17,7 @@ struct datablock{
      uint16_t metaBufferlength;
      uint16_t metaBuffertype;
      uint16_t metaHeaderlength; // number of 16 bit words in the list mode file header
-     uint16_t metaBuffernumber = 65535;
+     uint16_t metaBuffernumber=0;
      uint16_t runid;
      uint8_t mcpdid;
      bool daqrunning;
@@ -51,7 +51,8 @@ class lmfile
     
     char el_IDbyte[MAX_EVENTS]; //ID (1 bit) = 1 TrigID (3 bit) DataID (4)
     uint64_t NumberOfEvents;
-
+    bool NoDatabufferParsedBefore = true;
+    
     const char IDmon1 = 0b11110000;
     const char IDmon2 = 0b11110001;
     const char IDmon3 = 0b11110010;

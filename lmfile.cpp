@@ -87,22 +87,24 @@ ufilesize_t lmfile::getNumberOfEvents()
 void lmfile::parsedatablock()
 {
   ufilesize_t startposition = ifs.tellg();
-  //SHOWdec(startposition);
-  
+ 
   dblock.metaBufferlength = lmfile::readWord();
   dblock.metaBuffertype = lmfile::readWord();
   dblock.metaHeaderlength = lmfile::readWord();
   
-  uint16_t oldbuffernumber = dblock.metaBuffernumber;
-  dblock.metaBuffernumber = lmfile::readWord();
   
-  if (oldbuffernumber != 65535){
-    // buffernumber should increase!
-    assert((oldbuffernumber +1 )== dblock.metaBuffernumber);
-   } 
+  // now test, if buffer numbers increase
+  if (NoDatabufferParsedBefore == true){
+    dblock.metaBuffernumber = lmfile::readWord();
+    NoDatabufferParsedBefore == false;    
+   }
   else{
-    std::cout << "nocheck" << std::endl;
-  }                                                       // Ignore the test for first dataset
+    uint16_t oldbuffernumber = dblock.metaBuffernumber;
+    dblock.metaBuffernumber = lmfile::readWord();
+    assert((oldbuffernumber +1 )== dblock.metaBuffernumber);
+  }
+  
+  std::printf("Buffer #%d length: %d 16 bit words\n", dblock.metaBuffernumber, dblock.metaBufferlength);
   
   dblock.runid = lmfile::readWord();
   

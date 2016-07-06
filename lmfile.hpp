@@ -65,15 +65,19 @@ class lmfile
   public:
     lmfile( const char* mypath );
     ~lmfile();
-    static double timestamptomilliseconds(eventtime_t& ts_ns, eventtime_t& offset_ns);
+    static uint64_t timestamptomilliseconds(eventtime_t& ts_ns, eventtime_t& offset_ns);
     uint16_t readWord();
     uint64_t read64bit();
+    eventtime_t readevent();
+    static bool geteventID(uint64_t rawevent); // 0 = neutron, 1 = trigger
+    uint64_t geteventTIME(uint64_t rawevent);
     void parsedatablock();
     ufilesize_t getfilesize();
     ufilesize_t getfileHeaderLength();
     ufilesize_t getNumberOfEvents();
     void parsefileheader();
     bool EOFahead();
+    
     
     
     void el_addevent(eventtime_t& mytime_ns, uint8_t& mysource);

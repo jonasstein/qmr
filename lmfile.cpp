@@ -1,7 +1,7 @@
 #include "js_debug.cpp"
 #include <cstdint>
 #include "lmfile.hpp"
-#include <inttypes.h>
+//#include <inttypes.h>
 #include <istream>
 #include <iostream>     // std::cout
 #include <fstream>      // std::ifstream
@@ -43,11 +43,12 @@ lmfile::~lmfile()
   //std::cout << "closed file! \n";
 }
 
-double lmfile::timestamptomilliseconds(eventtime_t& ts_ns, eventtime_t& offset_ns)
+uint64_t lmfile::timestamptomilliseconds(eventtime_t& ts_ns, eventtime_t& offset_ns)
 {
-  double milliseconds= 0.000001 * static_cast<double>(ts_ns - offset_ns);
+  // double milliseconds= 1e-6 * static_cast<double>(ts_ns - offset_ns); // old code
+  uint64_t milliseconds= (ts_ns - offset_ns)/1e6; // make integer division to convert ns -> ms
   return milliseconds;
-  //FIXME change this to uint64_t
+
 }
 
 uint16_t lmfile::readWord ( )
@@ -68,6 +69,28 @@ uint64_t lmfile::read64bit ( )
   return __builtin_bswap64 ( sequenceRAW );
 }
 
+uint64_t lmfile::readevent()
+{ // we read 48 bit and store it in one 64 bit variable.
+  uint16_t eventLo = lmfile::readWord(); 
+  uint16_t eventMi = lmfile::readWord();
+  uint16_t eventHi = lmfile::readWord();
+  uint16_t eventRAW = ((uint64_t)eventHi << 32) + ((uint64_t)eventMi << 16) + ((uint64_t)eventLo << 0);
+  
+  return(eventRAW); 
+};
+
+bool lmfile::geteventID(uint64_t rawevent)
+{
+  // 6 bytes = 48 bit in, first bit = ID
+  bool theID;
+  theID = (rawevent >> 47) & 0b1;
+  return(theID);
+};
+
+uint64_t lmfile::geteventTIME(uint64_t rawevent)
+{
+  return(0);
+};
 
 ufilesize_t lmfile::getfilesize()
 {
@@ -91,8 +114,7 @@ void lmfile::parsedatablock()
   dblock.metaBufferlength = lmfile::readWord();
   dblock.metaBuffertype = lmfile::readWord();
   dblock.metaHeaderlength = lmfile::readWord();
-  
-  
+   
   // now test, if buffer numbers increase
   if (NoDatabufferParsedBefore == true){
     dblock.metaBuffernumber = lmfile::readWord();
@@ -117,32 +139,22 @@ void lmfile::parsedatablock()
   uint64_t wordRAWLo = lmfile::readWord(); uint64_t wordRAWMi = lmfile::readWord(); uint64_t wordRAWHi = lmfile::readWord();
   // FIXME: (cosmetic and to learn style) this is ugly code in my eyes. I want to read in 16bit and merge it to 64 bit in one line.
   dblock.header_timestamp_ns = ((wordRAWHi << 32) + (wordRAWMi << 16) + (wordRAWLo << 0)) * 100;
-  //SHOWdec((wordRAWHi << 32) + (wordRAWMi << 16) + (wordRAWLo << 0));
-  //SHOWdec(dblock.header_timestamp_ns);
-
   
   // ignore parameter0 .. parameter3 forward 4*3*16 bits = 24 bytes
   ifs.seekg(+24, std::ios_base::cur);  
   uint16_t eventsinthisbuffer = (dblock.metaBufferlength - 20)/3;
   
   //SHOWdec(eventsinthisbuffer);
-  
-  uint64_t eventLo;
-  uint64_t eventMi;
-  uint64_t eventHi;
-  uint64_t eventRAW;
+
+  eventtime_t eventRAW;
   char eventtype;
   //uint32_t eventdata; //Counter, Timer or ADC value not needed yet
   eventtime_t eventtimestamp_ns;
   
   for (int i = 0; i < eventsinthisbuffer; i++)
   {
-  eventLo = lmfile::readWord(); 
-  eventMi = lmfile::readWord();
-  eventHi = lmfile::readWord();
-  eventRAW = (eventHi << 32) + (eventMi << 16) + (eventLo << 0);
-  
-  
+
+  uint64_t eventRAW = readevent();
   eventtype = (eventRAW  >> 40);
   eventtimestamp_ns = (eventRAW & ((0b1 << 20) - 1)) * 100;
   
@@ -154,7 +166,6 @@ void lmfile::parsedatablock()
   }
   
   eventtime_t timeofthisevent_ns = dblock.header_timestamp_ns + eventtimestamp_ns;
-  
   uint8_t testsource = eventtype;  
   lmfile::el_addevent(eventtimestamp_ns, testsource);   //FIXME should be source
   }

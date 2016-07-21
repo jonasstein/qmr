@@ -7,15 +7,15 @@
 
 const char testFileName[] = "samples/180sec_2chan_5kHz_pm_4kHz_FM_4Hz_Trigger1Hz.mdat";
 
-TEST(lmfile, ConstructorFromTestFile) {
-  lmfile* limo;
-  limo = new lmfile(testFileName);
-  EXPECT_EQ(5658470, limo->getfilesize()) << "wrong file size calculated!";
-
-  EXPECT_EQ(2, limo->getfileHeaderLength()) << "wrong number of file header lines (mostly 2)!";
-  EXPECT_EQ(900259, limo->getNumberOfEvents()) << "wrong number of events!";
-  delete(limo);
-}
+// TEST(lmfile, ConstructorFromTestFile) {
+//   lmfile* limo;
+//   limo = new lmfile(testFileName);
+//   EXPECT_EQ(5658470, limo->getfilesize()) << "wrong file size calculated!";
+// 
+//   EXPECT_EQ(2, limo->getfileHeaderLength()) << "wrong number of file header lines (mostly 2)!";
+// //  EXPECT_EQ(900259, limo->getNumberOfEvents()) << "wrong number of events!";
+//   delete(limo);
+// }
 
 
 TEST(timestamptomilliseconds, OffsetCalculation) { 
@@ -27,22 +27,35 @@ TEST(timestamptomilliseconds, OffsetCalculation) {
     offsettime_ns = 1000000;
     EXPECT_EQ(2, lmfile::timestamptomilliseconds(truncatedtime_ns, offsettime_ns ));
 }
- 
-TEST(geteventID, NeutronOrTrigger){
-  uint64_t rawevent;
-  rawevent = 0xffffffffffff;
-  EXPECT_EQ(true, lmfile::geteventID(rawevent));
 
-  rawevent = 0x800000000000;
-  EXPECT_EQ(true, lmfile::geteventID(rawevent));
+
+TEST(parseEvent, parserTestZero) { 
+  triggerevent resultevent;
   
-  rawevent = 0x0fffffffffff;
-  EXPECT_EQ(false, lmfile::geteventID(rawevent));
-
-  rawevent = 0x000000000000;
-  EXPECT_EQ(false, lmfile::geteventID(rawevent));
+  uint16_t eventLo = 0x0; 
+  uint16_t eventMi = 0x0;
+  uint16_t eventHi = 0x0;
+  eventtime_t timezero = 0;
+  
+  resultevent = lmfile::parseEvent(eventLo, eventMi, eventHi, timezero);
+  EXPECT_EQ(0, resultevent.EventTimestamp_ns);
 }
- 
+
+TEST(parseEvent, parserTestRealEvent) { 
+  triggerevent resultevent;
+  
+  uint16_t eventLo = 0xf8a3; 
+  uint16_t eventMi = 0x1971;
+  uint16_t eventHi = 0x6400;
+  eventtime_t timezero = 0;
+  
+  resultevent = lmfile::parseEvent(eventLo, eventMi, eventHi, timezero);
+  EXPECT_EQ(431394235384, resultevent.EventTimestamp_ns);
+}
+
+
+
+
 int main(int argc, char **argv) {
     testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();

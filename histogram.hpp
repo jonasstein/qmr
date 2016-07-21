@@ -23,6 +23,9 @@ public:
 // This is the end of the header guard
 #endif
 
+//std::bitset<48> b1(eventRAW);
+//std::bitset<64> b2(eventtimestamp_ns);
+
 
 // void lmfile::printhistogram()
 // {

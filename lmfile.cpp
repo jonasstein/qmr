@@ -48,18 +48,21 @@ uint64_t lmfile::timestamptomilliseconds(eventtime_t& ts_ns, eventtime_t& offset
   // double milliseconds= 1e-6 * static_cast<double>(ts_ns - offset_ns); // old code
   uint64_t milliseconds= (ts_ns - offset_ns)/1e6; // make integer division to convert ns -> ms
   return milliseconds;
-
 }
 
 uint16_t lmfile::readWord ( )
 {
   uint16_t sequenceRAW;
   ifs.read ( reinterpret_cast<char *> ( &sequenceRAW ),2 );
-  // nb: little endian!
-  
-  return __builtin_bswap16 ( sequenceRAW ); 
+  return __builtin_bswap16 ( sequenceRAW );   // nb: little endian!
 }
 
+uint16_t lmfile::readWordNoSwap ( )
+{
+  uint16_t sequenceRAW;
+  ifs.read ( reinterpret_cast<char *> ( &sequenceRAW ),2 );
+  return( sequenceRAW ); 
+}
 
 uint64_t lmfile::read64bit ( )
 {
@@ -69,15 +72,6 @@ uint64_t lmfile::read64bit ( )
   return __builtin_bswap64 ( sequenceRAW );
 }
 
-uint64_t lmfile::readevent()
-{ // we read 48 bit and store it in one 64 bit variable.
-  uint16_t eventLo = lmfile::readWord(); 
-  uint16_t eventMi = lmfile::readWord();
-  uint16_t eventHi = lmfile::readWord();
-  uint16_t eventRAW = ((uint64_t)eventHi << 32) + ((uint64_t)eventMi << 16) + ((uint64_t)eventLo << 0);
-  
-  return(eventRAW); 
-};
 
 bool lmfile::geteventID(uint64_t rawevent)
 {
@@ -87,10 +81,6 @@ bool lmfile::geteventID(uint64_t rawevent)
   return(theID);
 };
 
-uint64_t lmfile::geteventTIME(uint64_t rawevent)
-{
-  return(0);
-};
 
 ufilesize_t lmfile::getfilesize()
 {
@@ -107,13 +97,57 @@ ufilesize_t lmfile::getNumberOfEvents()
   return lmfile::NumberOfEvents;
 }
 
+triggerevent lmfile::parseEvent(uint16_t LoWord, uint16_t MiWord, uint16_t HiWord, eventtime_t header_timestamp_ns)
+{
+  const uint64_t filterEventID     = 0b0000000000000000100000000000000000000000000000000000000000000000;
+  const uint64_t filterEventTrigID = 0b0000000000000000011100000000000000000000000000000000000000000000;
+  const uint64_t filterEventDataID = 0b0000000000000000000011110000000000000000000000000000000000000000;
+  const uint64_t filterEventData   = 0b0000000000000000000000001111111111111111111110000000000000000000;
+  const uint64_t filterEventTime   = 0b0000000000000000000000000000000000000000000001111111111111111111;
+  
+  triggerevent myEvent;
+  uint64_t eventRAW = ((uint64_t)HiWord << 32) + ((uint64_t)MiWord << 16) + ((uint64_t)LoWord << 0);
+
+//   std::bitset<64> LoAsBitset(LoWord); 
+//   std::cout << "Lo    : " << LoAsBitset << std::endl;
+// 
+//   std::bitset<64> MiAsBitset(MiWord); 
+//   std::cout << "Mi    : " << MiAsBitset << std::endl;
+//   
+//   std::bitset<64> HiAsBitset(HiWord); 
+//   std::cout << "Hi    : " << HiAsBitset << std::endl;
+//   
+//   std::bitset<64> eventAsBitset(eventRAW); 
+//   std::cout << "Bitset: " << eventAsBitset << std::endl;
+//   
+  
+  myEvent.TrigID = (eventRAW & filterEventTrigID) >> 44;
+  myEvent.DataID = (eventRAW & filterEventDataID) >> 40;
+  myEvent.Data = (eventRAW & filterEventData) >> 19;
+  
+  eventtime_t RAWtimestamp_ns  = (eventRAW & filterEventData) * 100;
+     
+  myEvent.EventTimestamp_ns = header_timestamp_ns + RAWtimestamp_ns;
+  return(myEvent);
+}
+
+void lmfile::DebugPrintFullEvent(triggerevent OneFullEvent)
+{
+std::cout << ">>> TrigID: " << std::dec << (uint16_t) OneFullEvent.TrigID;
+std::cout << " DataID: " << std::dec << (uint16_t) OneFullEvent.DataID;
+std::cout << " Data: " << OneFullEvent.Data;
+std::cout << " Time: " << OneFullEvent.EventTimestamp_ns - FirstOffsetTimestamp_ns << std::endl;
+}
+
 void lmfile::DebugPrintDatablock()
 {
   std::cout << "Buffer #" << dblock.metaBuffernumber; 
+  std::cout << " pre#: " << dblock.metaPreviousBuffernumber;
   std::cout << " length: " << dblock.metaBufferlength << " 16 bit words";
   std::cout << " type: " << dblock.metaBuffertype;
   std::cout << " header length: " << dblock.metaHeaderlength;  
-  std::cout << " pre#: " << dblock.metaPreviousBuffernumber << std::endl;
+  std::cout << " ts_ns: " << dblock.header_timestamp_ns;
+  std::cout << " t0_ns: " << FirstOffsetTimestamp_ns << std::endl;
 }
 
 void lmfile::parsedatablock()
@@ -123,19 +157,8 @@ void lmfile::parsedatablock()
   dblock.metaBufferlength = lmfile::readWord();
   dblock.metaBuffertype = lmfile::readWord();
   dblock.metaHeaderlength = lmfile::readWord();
-   
-  // now test, if buffer numbers increase
-  if (dblock.NoDatabufferParsedBefore == true){
-    dblock.metaBuffernumber = lmfile::readWord();
-    dblock.NoDatabufferParsedBefore = false;    
-  }
-  else{
-    dblock.metaBuffernumber = lmfile::readWord();
-    if (dblock.metaPreviousBuffernumber +1 != dblock.metaBuffernumber)
-    {
-      std::cout<< "WWW: Missing Datablock between " << dblock.metaPreviousBuffernumber << " and " << dblock.metaBuffernumber << std::endl; 
-    }
-  }
+  dblock.metaBuffernumber = lmfile::readWord();
+  
   dblock.runid = lmfile::readWord();
   
   uint16_t wordRAW = lmfile::readWord(); // mcpdid + status(DAQ running, sync OK) in one word
@@ -151,37 +174,35 @@ void lmfile::parsedatablock()
   ifs.seekg(+24, std::ios_base::cur);  // ignore parameter0 .. parameter3 forward 4*3*16 bits = 24 bytes
   uint16_t eventsinthisbuffer = (dblock.metaBufferlength - 20)/3;
 
-  eventtime_t eventRAW;
-  char eventtype;
-  //uint32_t eventdata; //Counter, Timer or ADC value not needed yet
-  eventtime_t eventtimestamp_ns;
-  
+  // now test, if buffer numbers increase
+  if (dblock.ThisIsTheFirstDatabufferEverRead  == true){
+    FirstOffsetTimestamp_ns = dblock.header_timestamp_ns;
+    dblock.ThisIsTheFirstDatabufferEverRead  = false;    
+  }
+  else{
+    if (dblock.metaPreviousBuffernumber +1 != dblock.metaBuffernumber){
+      std::cout<< "WWW: Missing Datablock between " << dblock.metaPreviousBuffernumber << " and " << dblock.metaBuffernumber << std::endl; 
+    }
+  }
+
   DebugPrintDatablock();
   
   for (int i = 0; i < eventsinthisbuffer; i++)
   {
-
-  uint64_t eventRAW = readevent();
-  eventtype = (eventRAW  >> 40);
-  eventtimestamp_ns = (eventRAW & ((0b1 << 20) - 1)) * 100;
+  triggerevent thisEvent;
   
-  std::bitset<48> b1(eventRAW);
-  std::bitset<64> b2(eventtimestamp_ns);
+  uint16_t eventLo = lmfile::readWord(); 
+  uint16_t eventMi = lmfile::readWord();
+  uint16_t eventHi = lmfile::readWord();
   
-  if (firsttimestamp_ns == 0) {
-    firsttimestamp_ns = dblock.header_timestamp_ns + eventtimestamp_ns; 
-  }
-  
-  eventtime_t timeofthisevent_ns = dblock.header_timestamp_ns + eventtimestamp_ns;
-  uint8_t testsource = eventtype;  
-  lmfile::el_addevent(eventtimestamp_ns, testsource);   //FIXME should be source
+  thisEvent = parseEvent(eventLo, eventMi, eventHi, dblock.header_timestamp_ns);
+  DebugPrintFullEvent(thisEvent);  
   }
 
-  //go to end of datablock
+  //go to end of datablock -> TODO make function bool lmfile::isEndOfDatablock();
   
   ifs.seekg(startposition + (dblock.metaBufferlength * 2), std::ios_base::beg);
-    
-  uint64_t sequenceRAW = lmfile::read64bit ( );
+  uint64_t sequenceRAW = lmfile::read64bit ();
   assert(sequenceRAW == datablocksignature);
   dblock.metaPreviousBuffernumber = dblock.metaBuffernumber;
 }
@@ -227,6 +248,6 @@ void lmfile::el_printallevents()
    {
      uint16_t sourcebuffer = el_IDbyte[a]; 
      // FIXME print more here + make headline
-     std::printf("%hu , %llu ns \n", (0xffff - sourcebuffer), el_times_ns[a]); // printf is much faster than cout here!
+     // std::printf("%hu , %llu ns \n", (0xffff - sourcebuffer), el_times_ns[a]); // printf is much faster than cout here!
   }
 }

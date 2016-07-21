@@ -18,13 +18,21 @@ struct datablock{
      uint16_t metaBuffertype;
      uint16_t metaHeaderlength; // number of 16 bit words in the list mode file header
      uint16_t metaBuffernumber=0;
+     uint16_t metaPreviousBuffernumber=0;
      uint16_t runid;
      uint8_t mcpdid;
      bool daqrunning;
      bool syncok;
      uint64_t header_timestamp_ns=0; 
+     bool NoDatabufferParsedBefore = true;
    };
 
+struct triggerevent{
+  uint8_t TrigID = 0;
+  uint8_t DataID = 0;
+  uint32_t Data = 0; //Counter, Timer or ADC value of the identified data source 21 bit
+  eventtime_t EventTimestamp = 0;
+};   
    
   const uint64_t headersignature     = 0x00005555AAAAFFFF;
   const uint64_t datablocksignature  = 0x0000FFFF5555AAAA;
@@ -35,11 +43,12 @@ struct datablock{
 
   
 typedef uint64_t ufilesize_t;
+typedef struct rawevent_t { char x[6]; } rawevent_t;
 
 class lmfile
 {
   private:
-    std::ifstream ifs;
+    std::ifstream ifs;  // FIXME: should I hand over a pointer in each function? Will this collide, if I create 2 instances?
     ufilesize_t filesize;
     ufilesize_t fileHeaderLength; // header length: nnnnn lines 
     ufilesize_t pos_dataheader;
@@ -48,10 +57,9 @@ class lmfile
        
     //event list items
     eventtime_t el_times_ns[MAX_EVENTS]; 
-    
     char el_IDbyte[MAX_EVENTS]; //ID (1 bit) = 1 TrigID (3 bit) DataID (4)
     uint64_t NumberOfEvents;
-    bool NoDatabufferParsedBefore = true;
+    
     
     const char IDmon1 = 0b11110000;
     const char IDmon2 = 0b11110001;
@@ -79,10 +87,9 @@ class lmfile
     bool EOFahead();
     
     
-    
+    void DebugPrintDatablock();
     void el_addevent(eventtime_t& mytime_ns, uint8_t& mysource);
     void el_printallevents();
-    void printhistogram();
 };
 
 // This is the end of the header guard

@@ -22,3 +22,23 @@ public:
 
 // This is the end of the header guard
 #endif
+
+
+// void lmfile::printhistogram()
+// {
+//   histogram* histo;
+//   
+//   
+//   histo = new histogram(100, 100000);
+//   
+//   for( uint64_t a = 0; a < NumberOfEvents; a = a + 1 )
+//    {
+//      uint16_t sourcebuffer = el_IDbyte[a]; 
+//      
+//      if (sourcebuffer == IDmon1){
+//      histo->put(el_times_ns[a]);  
+//      }
+//   }
+//   histo->print();
+//   
+// }

@@ -107,6 +107,15 @@ ufilesize_t lmfile::getNumberOfEvents()
   return lmfile::NumberOfEvents;
 }
 
+void lmfile::DebugPrintDatablock()
+{
+  std::cout << "Buffer #" << dblock.metaBuffernumber; 
+  std::cout << " length: " << dblock.metaBufferlength << " 16 bit words";
+  std::cout << " type: " << dblock.metaBuffertype;
+  std::cout << " header length: " << dblock.metaHeaderlength;  
+  std::cout << " pre#: " << dblock.metaPreviousBuffernumber << std::endl;
+}
+
 void lmfile::parsedatablock()
 {
   ufilesize_t startposition = ifs.tellg();
@@ -116,18 +125,17 @@ void lmfile::parsedatablock()
   dblock.metaHeaderlength = lmfile::readWord();
    
   // now test, if buffer numbers increase
-  if (NoDatabufferParsedBefore == true){
+  if (dblock.NoDatabufferParsedBefore == true){
     dblock.metaBuffernumber = lmfile::readWord();
-    NoDatabufferParsedBefore == false;    
-   }
-  else{
-    uint16_t oldbuffernumber = dblock.metaBuffernumber;
-    dblock.metaBuffernumber = lmfile::readWord();
-    assert((oldbuffernumber +1 )== dblock.metaBuffernumber);
+    dblock.NoDatabufferParsedBefore = false;    
   }
-  
-  std::printf("Buffer #%d length: %d 16 bit words\n", dblock.metaBuffernumber, dblock.metaBufferlength);
-  
+  else{
+    dblock.metaBuffernumber = lmfile::readWord();
+    if (dblock.metaPreviousBuffernumber +1 != dblock.metaBuffernumber)
+    {
+      std::cout<< "WWW: Missing Datablock between " << dblock.metaPreviousBuffernumber << " and " << dblock.metaBuffernumber << std::endl; 
+    }
+  }
   dblock.runid = lmfile::readWord();
   
   uint16_t wordRAW = lmfile::readWord(); // mcpdid + status(DAQ running, sync OK) in one word
@@ -140,16 +148,15 @@ void lmfile::parsedatablock()
   // FIXME: (cosmetic and to learn style) this is ugly code in my eyes. I want to read in 16bit and merge it to 64 bit in one line.
   dblock.header_timestamp_ns = ((wordRAWHi << 32) + (wordRAWMi << 16) + (wordRAWLo << 0)) * 100;
   
-  // ignore parameter0 .. parameter3 forward 4*3*16 bits = 24 bytes
-  ifs.seekg(+24, std::ios_base::cur);  
+  ifs.seekg(+24, std::ios_base::cur);  // ignore parameter0 .. parameter3 forward 4*3*16 bits = 24 bytes
   uint16_t eventsinthisbuffer = (dblock.metaBufferlength - 20)/3;
-  
-  //SHOWdec(eventsinthisbuffer);
 
   eventtime_t eventRAW;
   char eventtype;
   //uint32_t eventdata; //Counter, Timer or ADC value not needed yet
   eventtime_t eventtimestamp_ns;
+  
+  DebugPrintDatablock();
   
   for (int i = 0; i < eventsinthisbuffer; i++)
   {
@@ -169,14 +176,14 @@ void lmfile::parsedatablock()
   uint8_t testsource = eventtype;  
   lmfile::el_addevent(eventtimestamp_ns, testsource);   //FIXME should be source
   }
-  
+
   //go to end of datablock
   
   ifs.seekg(startposition + (dblock.metaBufferlength * 2), std::ios_base::beg);
-  //SHOWdec(ifs.tellg());
-  
+    
   uint64_t sequenceRAW = lmfile::read64bit ( );
   assert(sequenceRAW == datablocksignature);
+  dblock.metaPreviousBuffernumber = dblock.metaBuffernumber;
 }
 
 void lmfile::parsefileheader()
@@ -186,7 +193,6 @@ void lmfile::parsefileheader()
   std::getline(ifs, thisline); 
   assert(thisline == ("mesytec psd listmode data"));
 
-  // read second line  
   std::getline(ifs, thisline ); // header length: nnnnn lines
   int posi = thisline.find(": ");
   std::string sustri  = thisline.substr(posi+1,posi+4); // TODO  + 4 => EOL
@@ -195,9 +201,6 @@ void lmfile::parsefileheader()
   
   uint64_t sequenceRAW = lmfile::read64bit ( );
   assert(sequenceRAW == headersignature);
-
-  //pos_dataheader = ifs.tellg();
-  //printf("End of file header at %lu Bytes\n\n", pos_dataheader );
 }
 
 
@@ -226,25 +229,4 @@ void lmfile::el_printallevents()
      // FIXME print more here + make headline
      std::printf("%hu , %llu ns \n", (0xffff - sourcebuffer), el_times_ns[a]); // printf is much faster than cout here!
   }
-}
-
-
-
-void lmfile::printhistogram()
-{
-  histogram* histo;
-  
-  
-  histo = new histogram(100, 100000);
-  
-  for( uint64_t a = 0; a < NumberOfEvents; a = a + 1 )
-   {
-     uint16_t sourcebuffer = el_IDbyte[a]; 
-     
-     if (sourcebuffer == IDmon1){
-     histo->put(el_times_ns[a]);  
-     }
-  }
-  histo->print();
-  
 }

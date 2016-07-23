@@ -108,19 +108,6 @@ triggerevent lmfile::parseEvent(uint16_t LoWord, uint16_t MiWord, uint16_t HiWor
   triggerevent myEvent;
   uint64_t eventRAW = ((uint64_t)HiWord << 32) + ((uint64_t)MiWord << 16) + ((uint64_t)LoWord << 0);
 
-//   std::bitset<64> LoAsBitset(LoWord); 
-//   std::cout << "Lo    : " << LoAsBitset << std::endl;
-// 
-//   std::bitset<64> MiAsBitset(MiWord); 
-//   std::cout << "Mi    : " << MiAsBitset << std::endl;
-//   
-//   std::bitset<64> HiAsBitset(HiWord); 
-//   std::cout << "Hi    : " << HiAsBitset << std::endl;
-//   
-//   std::bitset<64> eventAsBitset(eventRAW); 
-//   std::cout << "Bitset: " << eventAsBitset << std::endl;
-//   
-  
   myEvent.TrigID = (eventRAW & filterEventTrigID) >> 44;
   myEvent.DataID = (eventRAW & filterEventDataID) >> 40;
   myEvent.Data = (eventRAW & filterEventData) >> 19;

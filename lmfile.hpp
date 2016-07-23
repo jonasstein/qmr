@@ -40,7 +40,7 @@ const uint64_t headersignature     = 0x00005555AAAAFFFF;
   const uint64_t datablocksignature  = 0x0000FFFF5555AAAA;
   const uint64_t filesignature       = 0xFFFFAAAA55550000;
   
-  const uint64_t     MAX_EVENTS = 100000000; // 9 byte per event
+  const uint64_t     MAX_EVENTS = 1000000; // 9 byte per event
  // const uint64_t MAX_DATABLOCKS = 10000000; // 42 byte per data block header  max age = 25 ns/Buffer;  max events = (1500-42)/6 = 243 events/Buffer
 
   

@@ -18,15 +18,23 @@
 #define SHOW(a) 
 #endif
 
+#include "boost/program_options.hpp" 
+#include "boost/filesystem.hpp" 
+  
+  
+int main(int argc, char *argv[]){
+
   
 
-int main () {
- 
+
   lmfile* limo;
   
   //limo = new lmfile("/home/stein/my/prj/qmr/data/M215/M215_4000ms_5000mVIN_HiZ_monitor.mdat");
   //limo = new lmfile("samples/180sec_2chan_5kHz_pm_4kHz_FM_4Hz_Trigger1Hz.mdat");
+ 
   limo = new lmfile("samples/closed_shutter_8kv_16ms_on_sample_after_shutdown.mdat");
+  
+  
   
   std::cout << "File size: " << limo->getfilesize() << " Bytes" << std::endl ; 
   

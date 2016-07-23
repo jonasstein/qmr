@@ -20,7 +20,7 @@
 #include <gtest/gtest.h> // add google test 
 #define eventtime_t uint64_t 
 
-lmfile::lmfile(char const * mypath) : ifs ( mypath, std::ifstream::ate | std::ifstream::binary ), filesize ( 0 ),  firsttimestamp_ns ( 0 ), NumberOfEvents ( 0 )
+lmfile::lmfile(std::string const mypath) : ifs ( mypath, std::ifstream::ate | std::ifstream::binary ), filesize ( 0 ),  firsttimestamp_ns ( 0 ), NumberOfEvents ( 0 )
 {
    // "ate" placed cursor to EOF, we can read out the filesize now and go to start.
    filesize = ifs.tellg();
@@ -112,7 +112,7 @@ triggerevent lmfile::parseEvent(uint16_t LoWord, uint16_t MiWord, uint16_t HiWor
   myEvent.DataID = (eventRAW & filterEventDataID) >> 40;
   myEvent.Data = (eventRAW & filterEventData) >> 19;
   
-  eventtime_t RAWtimestamp_ns  = (eventRAW & filterEventData) * 100;
+  eventtime_t RAWtimestamp_ns  = (eventRAW & filterEventTime) * 100;
      
   myEvent.EventTimestamp_ns = header_timestamp_ns + RAWtimestamp_ns;
   return(myEvent);

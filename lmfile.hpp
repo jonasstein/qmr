@@ -75,7 +75,7 @@ class lmfile
    */ 
    
   public:
-    lmfile( const char* mypath );
+    lmfile( const std::string mypath );
     ~lmfile();
     static uint64_t timestamptomilliseconds(eventtime_t& ts_ns, eventtime_t& offset_ns);
     uint16_t readWord();

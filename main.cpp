@@ -18,35 +18,55 @@
 #define SHOW(a) 
 #endif
 
-#include "boost/program_options.hpp" 
+#include <boost/program_options.hpp>
+#include <boost/program_options/options_description.hpp>
 #include "boost/filesystem.hpp" 
   
   
 int main(int argc, char *argv[]){
 
+  namespace po = boost::program_options;
+  po::options_description desc("Options");
+  desc.add_options()
+      ("help,h", "Generate this help message")
+      ("dry-run,n", "do nothing")
+      ("filename,f", po::value<std::string>()->default_value("/tmp/YOURFILENAME.mdat"));
+
+  po::variables_map vm;
+  po::store(po::parse_command_line(argc,argv,desc),vm);
+  po::notify(vm);
+ 
+  std::string filename;
+  filename = boost::any_cast<std::string>(vm["filename"].value());
+
+  std::cout << "h parsed: "  << vm.count("h") << std::endl;
+  std::cout << "n parsed: "  << vm.count("n") << std::endl;
+  std::cout << "filename: '" << filename << std::endl;
   
-
-
+  if (vm.count("help")) {
+    std::cout << "Usage: " << argv[0] << " [options] " << std::endl;
+    std::cout << desc << std::endl;
+    return 0;
+}
+  
+  if (vm.count("n") > 0){
+   //just simulate 
+  }
+  
+  
+  if (vm.count("filename") > 0)
+  {
   lmfile* limo;
   
-  //limo = new lmfile("/home/stein/my/prj/qmr/data/M215/M215_4000ms_5000mVIN_HiZ_monitor.mdat");
-  //limo = new lmfile("samples/180sec_2chan_5kHz_pm_4kHz_FM_4Hz_Trigger1Hz.mdat");
- 
-  limo = new lmfile("samples/closed_shutter_8kv_16ms_on_sample_after_shutdown.mdat");
-  
-  
+  //limo = new lmfile("samples/closed_shutter_8kv_16ms_on_sample_after_shutdown.mdat");
+  limo = new lmfile(filename);
   
   std::cout << "File size: " << limo->getfilesize() << " Bytes" << std::endl ; 
   
   //limo->el_printallevents();
   std::cout << "\n\n Total events in this file: " << limo->getNumberOfEvents() << " " << std::endl ; 
-  
-  std::string userkey;
-//  std::cout << "Press <Enter> to close and quit";
-//  getline (std::cin, userkey);
-  
   delete(limo);
-  
+  }
   return 0;
 }
 

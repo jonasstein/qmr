@@ -12,7 +12,7 @@ include(CheckCXXCompilerFlag)
 #        message(STATUS "The compiler ${CMAKE_CXX_COMPILER} has no C++11 support. Please use a different C++ compiler.")
 #endif()
 
-SET( CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -std=c++11 -lboost_system" )
+SET( CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -std=c++11 -lboost_system -lboost_program_options" )
 
 cmake_minimum_required (VERSION 2.6)
 project (qmread)

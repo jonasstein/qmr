@@ -2,10 +2,11 @@
 #include <gtest/gtest.h>
 #include <cmath> 
 #include <cstdint>
+#include <string>     // std::string, std::stoull
 #define eventtime_t uint64_t // FIXME this looks like bad code. It was defined in lmfile. I do not want to define types in a test file again...
 
 
-const char testFileName[] = "samples/180sec_2chan_5kHz_pm_4kHz_FM_4Hz_Trigger1Hz.mdat";
+const std::string testFileName = "samples/180sec_2chan_5kHz_pm_4kHz_FM_4Hz_Trigger1Hz.mdat";
 
 // TEST(lmfile, ConstructorFromTestFile) {
 //   lmfile* limo;

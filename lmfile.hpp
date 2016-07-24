@@ -91,8 +91,8 @@ class lmfile
     bool EOFahead();
     
     static triggerevent parseEvent(uint16_t LoWord, uint16_t MiWord, uint16_t HiWord, eventtime_t header_timestamp_ns);
-    void DebugPrintFullEvent(triggerevent OneFullEvent);
-    void DebugPrintDatablock();
+    void DebugPrintFullEvent(triggerevent OneFullEvent, bool PrintOnlyHeader);
+    void DebugPrintDatablock(bool PrintOnlyHeader);
     void el_addevent(eventtime_t& mytime_ns, uint8_t& mysource);
     void el_printallevents();
 };

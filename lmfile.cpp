@@ -118,23 +118,32 @@ triggerevent lmfile::parseEvent(uint16_t LoWord, uint16_t MiWord, uint16_t HiWor
   return(myEvent);
 }
 
-void lmfile::DebugPrintFullEvent(triggerevent OneFullEvent)
+void lmfile::DebugPrintFullEvent(triggerevent OneFullEvent, bool PrintOnlyHeader)
 {
-std::cout << ">>> TrigID: " << std::dec << (uint16_t) OneFullEvent.TrigID;
-std::cout << " DataID: " << std::dec << (uint16_t) OneFullEvent.DataID;
-std::cout << " Data: " << OneFullEvent.Data;
-std::cout << " Time: " << OneFullEvent.EventTimestamp_ns - FirstOffsetTimestamp_ns << std::endl;
-}
+  if (PrintOnlyHeader==true){
+    std::cout << "TrigID, DataID, Data, Time_ns" << std::endl;
+  }
+  else {
+  std::cout << std::dec << (uint16_t) OneFullEvent.TrigID;
+  std::cout << ", " << std::dec << (uint16_t) OneFullEvent.DataID;
+  std::cout << ", " << OneFullEvent.Data;
+  std::cout << ", " << OneFullEvent.EventTimestamp_ns - FirstOffsetTimestamp_ns << std::endl;
+  }}
 
-void lmfile::DebugPrintDatablock()
+void lmfile::DebugPrintDatablock(bool PrintOnlyHeader)
 {
-  std::cout << "Buffer #" << dblock.metaBuffernumber; 
-  std::cout << " pre#: " << dblock.metaPreviousBuffernumber;
-  std::cout << " length: " << dblock.metaBufferlength << " 16 bit words";
-  std::cout << " type: " << dblock.metaBuffertype;
-  std::cout << " header length: " << dblock.metaHeaderlength;  
-  std::cout << " ts_ns: " << dblock.header_timestamp_ns;
-  std::cout << " t0_ns: " << FirstOffsetTimestamp_ns << std::endl;
+  if (PrintOnlyHeader==true){
+    std::cout << "Buffer #, pre#, length, type, headerlength_words, ts_ns, t0_ns" << std::endl;
+  }
+  else {
+  std::cout << dblock.metaBuffernumber; 
+  std::cout << ", " << dblock.metaPreviousBuffernumber;
+  std::cout << ", " << dblock.metaBufferlength;
+  std::cout << ", " << dblock.metaBuffertype;
+  std::cout << ", " << dblock.metaHeaderlength;  
+  std::cout << ", " << dblock.header_timestamp_ns;
+  std::cout << ", " << FirstOffsetTimestamp_ns << std::endl;
+  }
 }
 
 void lmfile::parsedatablock()
@@ -172,7 +181,8 @@ void lmfile::parsedatablock()
     }
   }
 
-  DebugPrintDatablock();
+  bool PrintOnlyHeaderNow=false;
+  DebugPrintDatablock(PrintOnlyHeaderNow);
   
   for (int i = 0; i < eventsinthisbuffer; i++)
   {
@@ -183,7 +193,9 @@ void lmfile::parsedatablock()
   uint16_t eventHi = lmfile::readWord();
   
   thisEvent = parseEvent(eventLo, eventMi, eventHi, dblock.header_timestamp_ns);
-  DebugPrintFullEvent(thisEvent);  
+  
+  bool PrintOnlyHeaderNow=false;
+  DebugPrintFullEvent(thisEvent, PrintOnlyHeaderNow);  
   }
 
   //go to end of datablock -> TODO make function bool lmfile::isEndOfDatablock();

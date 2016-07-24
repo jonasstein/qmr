@@ -12,6 +12,8 @@
 #include <cstdint>
 #include <fstream>      // std::ifstream
 #include <string>     // std::string, std::stoull FIXME: Do I need this line *here*?
+#include <vector>
+
 
 struct datablock{
      uint16_t metaBufferlength;
@@ -40,9 +42,7 @@ const uint64_t headersignature     = 0x00005555AAAAFFFF;
   const uint64_t datablocksignature  = 0x0000FFFF5555AAAA;
   const uint64_t filesignature       = 0xFFFFAAAA55550000;
   
-  const uint64_t     MAX_EVENTS = 1000000; // 9 byte per event
- // const uint64_t MAX_DATABLOCKS = 10000000; // 42 byte per data block header  max age = 25 ns/Buffer;  max events = (1500-42)/6 = 243 events/Buffer
-
+ 
   
 typedef uint64_t ufilesize_t;
 typedef struct rawevent_t { char x[6]; } rawevent_t;
@@ -56,12 +56,14 @@ class lmfile
     ufilesize_t pos_dataheader;
     eventtime_t firsttimestamp_ns;
     datablock dblock; 
+    
+    std::vector<eventtime_t> Ch0;
+    std::vector<eventtime_t> Ch1;
+    std::vector<eventtime_t> Ch2;
+    std::vector<eventtime_t> Ch3;
        
     //event list items
-    eventtime_t el_times_ns[MAX_EVENTS]; 
-    char el_IDbyte[MAX_EVENTS]; //ID (1 bit) = 1 TrigID (3 bit) DataID (4)
-    uint64_t NumberOfEvents;
-    
+    //eventtime_t el_times_ns[MAX_EVENTS]; 
     
     const char IDmon1 = 0b11110000;
     const char IDmon2 = 0b11110001;
@@ -89,12 +91,14 @@ class lmfile
     ufilesize_t getfileHeaderLength();
     ufilesize_t getNumberOfEvents();
     void parsefileheader();
+    void pushEventToVector(triggerevent thisevent);
     bool EOFahead();
     
     static triggerevent parseEvent(uint16_t LoWord, uint16_t MiWord, uint16_t HiWord, eventtime_t header_timestamp_ns);
     void DebugPrintFullEvent(triggerevent OneFullEvent, bool PrintOnlyHeader);
     void DebugPrintDatablock(bool PrintOnlyHeader);
     void el_addevent(eventtime_t& mytime_ns, uint8_t& mysource);
+    void el_printstatus();
     void el_printallevents();
 };
 

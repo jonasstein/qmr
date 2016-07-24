@@ -39,9 +39,9 @@ int main(int argc, char *argv[]){
   std::string filename;
   filename = boost::any_cast<std::string>(vm["filename"].value());
 
-  std::cout << "h parsed: "  << vm.count("h") << std::endl;
-  std::cout << "n parsed: "  << vm.count("n") << std::endl;
-  std::cout << "filename: '" << filename << std::endl;
+//  std::cout << "h parsed: "  << vm.count("h") << std::endl;
+//  std::cout << "n parsed: "  << vm.count("n") << std::endl;
+  std::cout << "# filename: '" << filename << std::endl;
   
   if (vm.count("help")) {
     std::cout << "Usage: " << argv[0] << " [options] " << std::endl;
@@ -58,11 +58,11 @@ int main(int argc, char *argv[]){
   {
   lmfile* limo;
   limo = new lmfile(filename);
+  std::cout << "# size (Bytes): " << limo->getfilesize() << std::endl ; 
   limo->convertlistmodefile();
-  std::cout << "File size: " << limo->getfilesize() << " Bytes" << std::endl ; 
   
-  //limo->el_printallevents();
-  std::cout << "\n\n Total events in this file: " << limo->getNumberOfEvents() << " " << std::endl ; 
+  limo->el_printstatus();
+//  std::cout << "\n\n Total events in this file: " << limo->getNumberOfEvents() << " " << std::endl ; 
   delete(limo);
   }
   return 0;

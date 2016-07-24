@@ -12,7 +12,7 @@
 #include <math.h>       /* pow */
 //#define NDEBUG  // at the beginning of the code, before the inclusion of <assert.h> will disable all asserts
 #include <assert.h>
-
+#include <vector>
 #include <bitset>
 
 #include "histogram.hpp"
@@ -20,7 +20,7 @@
 #include <gtest/gtest.h> // add google test 
 #define eventtime_t uint64_t 
 
-lmfile::lmfile(std::string const mypath) : ifs ( mypath, std::ifstream::ate | std::ifstream::binary ), filesize ( 0 ),  firsttimestamp_ns ( 0 ), NumberOfEvents ( 0 )
+lmfile::lmfile(std::string const mypath) : ifs ( mypath, std::ifstream::ate | std::ifstream::binary ), filesize ( 0 ),  firsttimestamp_ns ( 0 )
 {
    // "ate" placed cursor to EOF, we can read out the filesize now and go to start.
    filesize = ifs.tellg();
@@ -97,12 +97,12 @@ ufilesize_t lmfile::getfileHeaderLength()
 
 ufilesize_t lmfile::getNumberOfEvents()
 {
-  return lmfile::NumberOfEvents;
+  return 0; //FIXME
 }
 
 triggerevent lmfile::parseEvent(uint16_t LoWord, uint16_t MiWord, uint16_t HiWord, eventtime_t header_timestamp_ns)
 {
-  const uint64_t filterEventID     = 0b0000000000000000100000000000000000000000000000000000000000000000;
+  //const uint64_t filterEventID     = 0b0000000000000000100000000000000000000000000000000000000000000000;
   const uint64_t filterEventTrigID = 0b0000000000000000011100000000000000000000000000000000000000000000;
   const uint64_t filterEventDataID = 0b0000000000000000000011110000000000000000000000000000000000000000;
   const uint64_t filterEventData   = 0b0000000000000000000000001111111111111111111110000000000000000000;
@@ -197,6 +197,8 @@ void lmfile::parsedatablock()
   
   thisEvent = parseEvent(eventLo, eventMi, eventHi, dblock.header_timestamp_ns);
   
+  pushEventToVector(thisEvent);
+  
   bool PrintOnlyHeaderNow=false;
   DebugPrintFullEvent(thisEvent, PrintOnlyHeaderNow);  
   }
@@ -208,6 +210,27 @@ void lmfile::parsedatablock()
   assert(sequenceRAW == datablocksignature);
   dblock.metaPreviousBuffernumber = dblock.metaBuffernumber;
 }
+
+void lmfile::pushEventToVector(triggerevent thisevent)
+{
+switch(thisevent.DataID){
+  case 0:
+    Ch0.push_back(thisevent.EventTimestamp_ns);
+    break;
+  case 1:
+    Ch1.push_back(thisevent.EventTimestamp_ns);
+    break;
+  case 2:
+    Ch2.push_back(thisevent.EventTimestamp_ns);
+    break;
+  case 3:
+    Ch3.push_back(thisevent.EventTimestamp_ns);
+    break;
+  default:
+    std::cout << "Error in pushEventToVector" << std::endl;
+}
+}
+
 
 void lmfile::parsefileheader()
 {
@@ -238,18 +261,26 @@ bool lmfile::EOFahead()
 
 void lmfile::el_addevent (eventtime_t& mytime_ns, uint8_t& myIDbyte)
 {
-  assert((NumberOfEvents + 1) < MAX_EVENTS);
-  el_IDbyte[NumberOfEvents + 1] = myIDbyte;
-  el_times_ns[NumberOfEvents + 1] = mytime_ns;
-  NumberOfEvents += 1;
+  //assert((NumberOfEvents + 1) < MAX_EVENTS);
+  //el_IDbyte[NumberOfEvents + 1] = myIDbyte;
+  //el_times_ns[NumberOfEvents + 1] = mytime_ns;
+  //NumberOfEvents += 1;
 }
 
+void lmfile::el_printstatus()
+{
+std::cout << "Ch0: " <<  Ch0.size() << std::endl;  
+std::cout << "Ch1: " <<  Ch1.size() << std::endl;  
+std::cout << "Ch2: " <<  Ch2.size() << std::endl;  
+std::cout << "Ch3: " <<  Ch3.size() << std::endl;  
+}
 void lmfile::el_printallevents()
 {
-  for( uint64_t a = 0; a < NumberOfEvents; a = a + 1 )
-   {
-     uint16_t sourcebuffer = el_IDbyte[a]; 
+
+  //  for( uint64_t a = 0; a < NumberOfEvents; a = a + 1 )
+   //{
+//     uint16_t sourcebuffer = el_IDbyte[a]; 
      // FIXME print more here + make headline
      // std::printf("%hu , %llu ns \n", (0xffff - sourcebuffer), el_times_ns[a]); // printf is much faster than cout here!
-  }
+//  }
 }

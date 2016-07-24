@@ -57,10 +57,8 @@ int main(int argc, char *argv[]){
   if (vm.count("filename") > 0)
   {
   lmfile* limo;
-  
-  //limo = new lmfile("samples/closed_shutter_8kv_16ms_on_sample_after_shutdown.mdat");
   limo = new lmfile(filename);
-  
+  limo->convertlistmodefile();
   std::cout << "File size: " << limo->getfilesize() << " Bytes" << std::endl ; 
   
   //limo->el_printallevents();

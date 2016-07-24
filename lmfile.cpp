@@ -26,8 +26,16 @@ lmfile::lmfile(std::string const mypath) : ifs ( mypath, std::ifstream::ate | st
    filesize = ifs.tellg();
    assert(filesize > 0);
    ifs.seekg (0, ifs.beg);
-   
-   lmfile::parsefileheader();
+}
+
+lmfile::~lmfile()
+{
+  //std::cout << "closed file! \n";
+}
+
+void lmfile::convertlistmodefile()
+{
+lmfile::parsefileheader();
    
    bool fileEOF=false;
   
@@ -36,11 +44,6 @@ lmfile::lmfile(std::string const mypath) : ifs ( mypath, std::ifstream::ate | st
    lmfile::parsedatablock();
    fileEOF = lmfile::EOFahead();
    };
-}
-
-lmfile::~lmfile()
-{
-  //std::cout << "closed file! \n";
 }
 
 uint64_t lmfile::timestamptomilliseconds(eventtime_t& ts_ns, eventtime_t& offset_ns)

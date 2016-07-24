@@ -77,6 +77,7 @@ class lmfile
   public:
     lmfile( const std::string mypath );
     ~lmfile();
+    void convertlistmodefile();
     static uint64_t timestamptomilliseconds(eventtime_t& ts_ns, eventtime_t& offset_ns);
     uint16_t readWord();
     uint16_t readWordNoSwap();

@@ -293,5 +293,9 @@ for(int n=0; n<4; n++){
 
 void lmfile::el_printallevents()
 {
-
+    
+  for (auto it = Eventlist.begin(); it!=Eventlist.end(); ++it) {
+    std::cout << (*it).EventTimestamp_ns << std::endl; 
+  }
 }
+

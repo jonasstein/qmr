@@ -62,6 +62,8 @@ int main(int argc, char *argv[]){
   limo->convertlistmodefile();
   limo->sortEventlist();
   limo->el_printstatus();
+  
+  limo->el_printallevents();
 //  std::cout << "\n\n Total events in this file: " << limo->getNumberOfEvents() << " " << std::endl ; 
   delete(limo);
   }

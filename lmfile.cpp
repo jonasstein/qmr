@@ -14,7 +14,7 @@
 #include <assert.h>
 #include <vector>
 #include <bitset>
-
+#include <algorithm>
 #include "histogram.hpp"
 
 #include <gtest/gtest.h> // add google test 
@@ -51,6 +51,17 @@ uint64_t lmfile::timestamptomilliseconds(eventtime_t& ts_ns, eventtime_t& offset
   // double milliseconds= 1e-6 * static_cast<double>(ts_ns - offset_ns); // old code
   uint64_t milliseconds= (ts_ns - offset_ns)/1e6; // make integer division to convert ns -> ms
   return milliseconds;
+}
+
+uint64_t lmfile::getIndexOfMinimum(uint64_t arrayOfint[], uint64_t size)
+{
+    uint64_t index = 0;
+    for(uint64_t n = 1; n < size; n++)
+    {
+        if(arrayOfint[n] < arrayOfint[index])
+            index = n;              
+    }
+    return index;
 }
 
 uint16_t lmfile::readWord ( )
@@ -213,22 +224,19 @@ void lmfile::parsedatablock()
 
 void lmfile::pushEventToVector(triggerevent thisevent)
 {
-switch(thisevent.DataID){
-  case 0:
-    Ch0.push_back(thisevent.EventTimestamp_ns);
-    break;
-  case 1:
-    Ch1.push_back(thisevent.EventTimestamp_ns);
-    break;
-  case 2:
-    Ch2.push_back(thisevent.EventTimestamp_ns);
-    break;
-  case 3:
-    Ch3.push_back(thisevent.EventTimestamp_ns);
-    break;
-  default:
-    std::cout << "Error in pushEventToVector" << std::endl;
+ ChSum[thisevent.DataID]++;
+ 
+ if (thisevent.DataID == ChannelOfPeriod){
+  if (PeriodTime_ns[0] == 0){PeriodTime_ns[0] = thisevent.EventTimestamp_ns;}
+  else if (PeriodTime_ns[1] == 0){PeriodTime_ns[1] = thisevent.EventTimestamp_ns;}
+ }
+ 
+ Eventlist.push_back(thisevent);
 }
+
+void lmfile::sortEventlist()
+{
+ std::sort(Eventlist.begin(), Eventlist.end());
 }
 
 
@@ -267,20 +275,23 @@ void lmfile::el_addevent (eventtime_t& mytime_ns, uint8_t& myIDbyte)
   //NumberOfEvents += 1;
 }
 
+triggerevent lmfile::el_getnexttriggerevent(eventtime_t currenttime)
+{
+  triggerevent t;
+  t.Data=0;
+ return (t);
+}
+
 void lmfile::el_printstatus()
 {
-std::cout << "Ch0: " <<  Ch0.size() << std::endl;  
-std::cout << "Ch1: " <<  Ch1.size() << std::endl;  
-std::cout << "Ch2: " <<  Ch2.size() << std::endl;  
-std::cout << "Ch3: " <<  Ch3.size() << std::endl;  
+for(int n=0; n<4; n++){
+  std::cout << "Ch" << n << ": " << ChSum[n] << std::endl;  
 }
+
+  std::cout << "Period (ns): " << PeriodTime_ns[1] - PeriodTime_ns[0] << std::endl;  
+}
+
 void lmfile::el_printallevents()
 {
 
-  //  for( uint64_t a = 0; a < NumberOfEvents; a = a + 1 )
-   //{
-//     uint16_t sourcebuffer = el_IDbyte[a]; 
-     // FIXME print more here + make headline
-     // std::printf("%hu , %llu ns \n", (0xffff - sourcebuffer), el_times_ns[a]); // printf is much faster than cout here!
-//  }
 }

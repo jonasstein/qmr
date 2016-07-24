@@ -35,7 +35,13 @@ struct triggerevent{
   uint32_t Data = 0; //Counter, Timer or ADC value of the identified data source 21 bit
   eventtime_t EventTimestamp_ns = 0;
 };   
-   
+
+bool operator<(const triggerevent& a, const triggerevent& b)
+{
+    return a.EventTimestamp_ns < b.EventTimestamp_ns;
+}
+
+
 eventtime_t FirstOffsetTimestamp_ns = 0; 
 
 const uint64_t headersignature     = 0x00005555AAAAFFFF;
@@ -61,7 +67,11 @@ class lmfile
     std::vector<eventtime_t> Ch1;
     std::vector<eventtime_t> Ch2;
     std::vector<eventtime_t> Ch3;
-       
+
+    std::vector<triggerevent> Eventlist;
+    
+    uint64_t ChSum[4] = {};
+    
     //event list items
     //eventtime_t el_times_ns[MAX_EVENTS]; 
     
@@ -69,8 +79,14 @@ class lmfile
     const char IDmon2 = 0b11110001;
     const char IDmon3 = 0b11110010;
     const char IDmon4 = 0b11110011;
+  
+    const uint8_t ChannelOfDetector = 0;
+    const uint8_t ChannelOfPeriod   = 1;
+    const uint8_t ChannelOfFlipper  = 2;
+    const uint8_t ChannelOfMonitor  = 3;
     
-
+    
+  eventtime_t PeriodTime_ns[2] = {}; 
     
    /* uint64_t file_last_position_after_signature; // points to first char behind the last signature
     uint16_t file_last_signature_type; // 1=header, 2=databuffer, 3= eofsig, -1=else
@@ -81,6 +97,7 @@ class lmfile
     ~lmfile();
     void convertlistmodefile();
     static uint64_t timestamptomilliseconds(eventtime_t& ts_ns, eventtime_t& offset_ns);
+    static uint64_t getIndexOfMinimum(uint64_t arrayOfint[], uint64_t size);
     uint16_t readWord();
     uint16_t readWordNoSwap();
     uint64_t read64bit();
@@ -92,12 +109,14 @@ class lmfile
     ufilesize_t getNumberOfEvents();
     void parsefileheader();
     void pushEventToVector(triggerevent thisevent);
+    void sortEventlist();
     bool EOFahead();
     
     static triggerevent parseEvent(uint16_t LoWord, uint16_t MiWord, uint16_t HiWord, eventtime_t header_timestamp_ns);
     void DebugPrintFullEvent(triggerevent OneFullEvent, bool PrintOnlyHeader);
     void DebugPrintDatablock(bool PrintOnlyHeader);
     void el_addevent(eventtime_t& mytime_ns, uint8_t& mysource);
+    triggerevent el_getnexttriggerevent(eventtime_t currenttime);
     void el_printstatus();
     void el_printallevents();
 };

@@ -60,7 +60,7 @@ int main(int argc, char *argv[]){
   limo = new lmfile(filename);
   std::cout << "# size (Bytes): " << limo->getfilesize() << std::endl ; 
   limo->convertlistmodefile();
-  
+  limo->sortEventlist();
   limo->el_printstatus();
 //  std::cout << "\n\n Total events in this file: " << limo->getNumberOfEvents() << " " << std::endl ; 
   delete(limo);

@@ -196,7 +196,7 @@ void lmfile::parsedatablock()
   }
 
   bool PrintOnlyHeaderNow=false;
-  DebugPrintDatablock(PrintOnlyHeaderNow);
+  if (beVerbose){DebugPrintDatablock(PrintOnlyHeaderNow);}
   
   for (int i = 0; i < eventsinthisbuffer; i++)
   {
@@ -211,7 +211,7 @@ void lmfile::parsedatablock()
   pushEventToVector(thisEvent);
   
   bool PrintOnlyHeaderNow=false;
-  DebugPrintFullEvent(thisEvent, PrintOnlyHeaderNow);  
+  if (beVerbose){DebugPrintFullEvent(thisEvent, PrintOnlyHeaderNow);}
   }
 
   //go to end of datablock -> TODO make function bool lmfile::isEndOfDatablock();
@@ -299,3 +299,34 @@ void lmfile::el_printallevents()
   }
 }
 
+void lmfile::el_printhistogram()
+{
+  // should be sortet before
+  const uint64_t numOfBins = 100;
+  uint64_t   monitorSum=0;
+  
+  histogram* histo;
+  histo = new histogram(numOfBins, (PeriodTime_ns[1] - PeriodTime_ns[0]));
+  
+  uint64_t aa=0;
+  
+  for (auto it = Eventlist.begin(); it!=Eventlist.end(); ++it) {
+    if ((*it).DataID == ChannelOfDetector){
+     aa = (*it).EventTimestamp_ns; 
+     histo-> put(aa);
+    }
+    if ((*it).DataID == ChannelOfFlipper){
+      // std::cout << "# Monitor Sum: " << monitorSum << std::endl;
+      monitorSum = 0;
+      histo-> print();
+      histo-> reset();
+    }
+    if ((*it).DataID == ChannelOfMonitor){
+      monitorSum++;  
+    }
+  }
+  
+  histo-> print();
+  delete(histo); 
+  
+}

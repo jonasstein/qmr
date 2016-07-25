@@ -7,38 +7,20 @@
 
 class histogram{
 private:
-  uint64_t buckets[10000] ;//= {0}; // Make the size flexible later
+  uint64_t buckets[10000]={}; // Make the size flexible later
   uint16_t maxbuckets; 
   uint64_t binwidth;
+  uint64_t period_ns;
   
 public:
   histogram(const uint16_t setmaxbuckets, const uint64_t setbinwidth);
   ~histogram();
   
   void put(uint64_t& value);
+  void reset();
   void print();
 };
 
 
 // This is the end of the header guard
 #endif
-
-
-// void lmfile::printhistogram()
-// {
-//   histogram* histo;
-//   
-//   
-//   histo = new histogram(100, 100000);
-//   
-//   for( uint64_t a = 0; a < NumberOfEvents; a = a + 1 )
-//    {
-//      uint16_t sourcebuffer = el_IDbyte[a]; 
-//      
-//      if (sourcebuffer == IDmon1){
-//      histo->put(el_times_ns[a]);  
-//      }
-//   }
-//   histo->print();
-//   
-// }

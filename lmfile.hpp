@@ -85,6 +85,7 @@ class lmfile
     const uint8_t ChannelOfFlipper  = 2;
     const uint8_t ChannelOfMonitor  = 3;
     
+    bool beVerbose = false;
     
   eventtime_t PeriodTime_ns[2] = {}; 
     
@@ -119,6 +120,7 @@ class lmfile
     triggerevent el_getnexttriggerevent(eventtime_t currenttime);
     void el_printstatus();
     void el_printallevents();
+    void el_printhistogram();
 };
 
 // This is the end of the header guard

@@ -7,7 +7,7 @@
 #include <byteswap.h> // http://stackoverflow.com/questions/105252/how-do-i-convert-between-big-endian-and-little-endian-values-in-c
 #include <inttypes.h>
 #include "lmfile.hpp"
-
+#include "histogram.hpp"
 #include <assert.h>     /* assert */
 #define NDEBUG 
 
@@ -61,11 +61,12 @@ int main(int argc, char *argv[]){
   std::cout << "# size (Bytes): " << limo->getfilesize() << std::endl ; 
   limo->convertlistmodefile();
   limo->sortEventlist();
-  limo->el_printstatus();
-  
-  limo->el_printallevents();
-//  std::cout << "\n\n Total events in this file: " << limo->getNumberOfEvents() << " " << std::endl ; 
+  //limo->el_printstatus();
+  limo->el_printhistogram();
+  //limo->el_printallevents();
+
   delete(limo);
+
   }
   return 0;
 }

@@ -30,8 +30,8 @@ void histogram::put(uint64_t& value)
 void histogram::reset()
 {
   for (uint64_t n=0; n< maxbuckets; n++){
-  buckets[n]=0;
-  }
+    buckets[n]=0;
+   }
 }
 
 void histogram::print()
@@ -41,9 +41,9 @@ void histogram::print()
   //for( uint16_t a = 0; a < maxbuckets; a++ )
   // {std::cout << a << ", ";}
   //std::cout << std::endl;
-  
+
   for( uint16_t a = 0; a < maxbuckets; a++ )
-   {std::cout << buckets[a] << ", ";}
-   
-   std::cout << std::endl;
+  {std::cout << buckets[a] << ", ";}
+
+  std::cout << std::endl;
 }

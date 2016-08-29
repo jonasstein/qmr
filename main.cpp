@@ -30,7 +30,8 @@ int main(int argc, char *argv[]){
   desc.add_options()
       ("help,h", "Generate this help message")
       ("dry-run,n", "do nothing")
-      ("filename,f", po::value<std::string>()->default_value("/tmp/YOURFILENAME.mdat"));
+      ("filename,f", po::value<std::string>()->default_value("/tmp/test.mdat"));
+//             ("filename,f", po::value<std::string>()->default_value("/tmp/YOURFILENAME.mdat"));
 
   po::variables_map vm;
   po::store(po::parse_command_line(argc,argv,desc),vm);
@@ -39,8 +40,6 @@ int main(int argc, char *argv[]){
   std::string filename;
   filename = boost::any_cast<std::string>(vm["filename"].value());
 
-//  std::cout << "h parsed: "  << vm.count("h") << std::endl;
-//  std::cout << "n parsed: "  << vm.count("n") << std::endl;
   std::cout << "# filename: '" << filename << std::endl;
   
   if (vm.count("help")) {
@@ -62,6 +61,7 @@ int main(int argc, char *argv[]){
   limo->convertlistmodefile();
   limo->sortEventlist();
   //limo->el_printstatus();
+  std::cout << limo ->getNumberOfEvents() << std::endl; 
   limo->el_printhistogram();
   //limo->el_printallevents();
 

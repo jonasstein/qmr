@@ -18,11 +18,16 @@
 #define SHOW(a) 
 #endif
 
+#define BOOST_NO_CXX11_SCOPED_ENUMS
 #include <boost/program_options.hpp>
 #include <boost/program_options/options_description.hpp>
-#include "boost/filesystem.hpp" 
-  
-  
+
+//http://stackoverflow.com/questions/15634114/cant-link-program-using-boost-filesystem
+
+#include <boost/filesystem.hpp>
+#undef BOOST_NO_CXX11_SCOPED_ENUMS
+
+
 int main(int argc, char *argv[]){
 
   namespace po = boost::program_options;
@@ -36,7 +41,7 @@ int main(int argc, char *argv[]){
   po::variables_map vm;
   po::store(po::parse_command_line(argc,argv,desc),vm);
   po::notify(vm);
- 
+
   std::string filename;
   filename = boost::any_cast<std::string>(vm["filename"].value());
 
@@ -55,6 +60,12 @@ int main(int argc, char *argv[]){
   
   if (vm.count("filename") > 0)
   {
+    if ( !boost::filesystem::exists( "/home/stein/my/prj/qmr" ) ) //filename
+      {
+       std::cout << "File not found: " << filename << std::endl;
+        //return(EXIT_FAILURE);
+      }
+    else {
   lmfile* limo;
   limo = new lmfile(filename);
   std::cout << "# size (Bytes): " << limo->getfilesize() << std::endl ; 
@@ -66,8 +77,10 @@ int main(int argc, char *argv[]){
   //limo->el_printallevents();
 
   delete(limo);
-
+  return(EXIT_SUCCESS);
   }
-  return 0;
+  }
+  
+  
 }
 

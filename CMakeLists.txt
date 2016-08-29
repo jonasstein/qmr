@@ -19,7 +19,7 @@ project (qmread)
 #add_executable(qmr main.cpp lmfile.cpp histogram.cpp)
 add_executable(qmr main.cpp)
 
-target_link_libraries(qmr lm)
+target_link_libraries(qmr lm )
 
 # set(CMAKE_BUILD_TYPE Release)
 

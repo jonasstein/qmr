@@ -43,7 +43,7 @@ void histogram::print()
   //std::cout << std::endl;
 
   for( uint16_t a = 0; a < maxbuckets; a++ )
-  {std::cout << buckets[a] << ", ";}
+  {std::cout << a * binwidth << ", " << buckets[a] << ", " << std::endl;}
 
   std::cout << std::endl;
 }

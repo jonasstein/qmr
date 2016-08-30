@@ -63,10 +63,10 @@ int main(int argc, char *argv[]){
   
   if (vm.count("filename") > 0)
   {
-  if(!fileExists("test.txt"))
+  if(!fileExists(filename))
       {
        std::cout << "File not found: " << filename << std::endl;
-        //return(EXIT_FAILURE);
+       return(EXIT_FAILURE);
       }
     else {
   lmfile* limo;
@@ -75,7 +75,7 @@ int main(int argc, char *argv[]){
   limo->convertlistmodefile();
   limo->sortEventlist();
   //limo->el_printstatus();
-  std::cout << limo ->getNumberOfEvents() << std::endl; 
+  std::cout << "# Number of Events: " << limo ->getNumberOfEvents() << std::endl; 
   limo->el_printhistogram();
   //limo->el_printallevents();
 

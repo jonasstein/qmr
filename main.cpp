@@ -18,14 +18,18 @@
 #define SHOW(a) 
 #endif
 
-#define BOOST_NO_CXX11_SCOPED_ENUMS
+// http://stackoverflow.com/questions/15634114/cant-link-program-using-boost-filesystem
+//#include <boost/filesystem.hpp>
+#include <sys/stat.h> // because boost::filesystem is fragile between different systems, gcc and boost versions
+
 #include <boost/program_options.hpp>
 #include <boost/program_options/options_description.hpp>
 
-//http://stackoverflow.com/questions/15634114/cant-link-program-using-boost-filesystem
-
-#include <boost/filesystem.hpp>
-#undef BOOST_NO_CXX11_SCOPED_ENUMS
+// true if file exists
+bool fileExists(const std::string& file) {
+    struct stat buf;
+    return (stat(file.c_str(), &buf) == 0);
+}
 
 
 int main(int argc, char *argv[]){
@@ -57,10 +61,9 @@ int main(int argc, char *argv[]){
    //just simulate 
   }
   
-  
   if (vm.count("filename") > 0)
   {
-    if ( !boost::filesystem::exists( "/home/stein/my/prj/qmr" ) ) //filename
+  if(!fileExists("test.txt"))
       {
        std::cout << "File not found: " << filename << std::endl;
         //return(EXIT_FAILURE);
@@ -80,7 +83,5 @@ int main(int argc, char *argv[]){
   return(EXIT_SUCCESS);
   }
   }
-  
-  
 }
 

@@ -138,10 +138,12 @@ void lmfile::DebugPrintFullEvent(triggerevent OneFullEvent, bool PrintOnlyHeader
     std::cout << "TrigID, DataID, Data, Time_ns" << std::endl;
   }
   else {
-    std::cout << std::dec << (uint16_t) OneFullEvent.TrigID;
-    std::cout << ", " << std::dec << (uint16_t) OneFullEvent.DataID;
-    std::cout << ", " << OneFullEvent.Data;
-    std::cout << ", " << OneFullEvent.EventTimestamp_ns - FirstOffsetTimestamp_ns << std::endl;
+    std::printf("%d, %d, %llu, %llu \n", OneFullEvent.TrigID, OneFullEvent.DataID, OneFullEvent.Data, 
+                OneFullEvent.EventTimestamp_ns - FirstOffsetTimestamp_ns);
+    //std::cout << std::dec << (uint16_t) OneFullEvent.TrigID;
+    //std::cout << ", " << std::dec << (uint16_t) OneFullEvent.DataID;
+    //std::cout << ", " << OneFullEvent.Data;
+    //std::cout << ", " << OneFullEvent.EventTimestamp_ns - FirstOffsetTimestamp_ns << std::endl;
   }}
   
   void lmfile::DebugPrintDatablock(bool PrintOnlyHeader)
@@ -196,7 +198,7 @@ void lmfile::DebugPrintFullEvent(triggerevent OneFullEvent, bool PrintOnlyHeader
     }
     
     bool PrintOnlyHeaderNow=false;
-    if (beVerbose){DebugPrintDatablock(PrintOnlyHeaderNow);}
+    if (verbosityLevel >= 2){DebugPrintDatablock(PrintOnlyHeaderNow);}
     
     for (int i = 0; i < eventsinthisbuffer; i++)
     {
@@ -211,7 +213,7 @@ void lmfile::DebugPrintFullEvent(triggerevent OneFullEvent, bool PrintOnlyHeader
       pushEventToVector(thisEvent);
       
       bool PrintOnlyHeaderNow=false;
-      if (beVerbose){DebugPrintFullEvent(thisEvent, PrintOnlyHeaderNow);}
+      if (verbosityLevel >= 1){DebugPrintFullEvent(thisEvent, PrintOnlyHeaderNow);}
     }
     
     //go to end of datablock -> TODO make function bool lmfile::isEndOfDatablock();
@@ -329,3 +331,9 @@ void lmfile::DebugPrintFullEvent(triggerevent OneFullEvent, bool PrintOnlyHeader
     histo-> print();
     delete(histo); 
   }
+  
+void lmfile::setverbositylevel(uint8_t vlevel)
+{
+ verbosityLevel = vlevel; 
+}
+

@@ -84,9 +84,9 @@ class lmfile
     const uint8_t ChannelOfPeriod   = 1;
     const uint8_t ChannelOfFlipper  = 2;
     const uint8_t ChannelOfMonitor  = 3;
-    
-    bool beVerbose = false;
-    
+
+    uint8_t verbosityLevel = 0;
+
   eventtime_t PeriodTime_ns[2] = {}; 
     
    /* uint64_t file_last_position_after_signature; // points to first char behind the last signature
@@ -121,6 +121,7 @@ class lmfile
     void el_printstatus();
     void el_printallevents();
     void el_printhistogram();
+    void setverbositylevel(uint8_t);
 };
 
 // This is the end of the header guard

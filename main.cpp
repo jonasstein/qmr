@@ -37,18 +37,25 @@ int main(int argc, char *argv[]){
   namespace po = boost::program_options;
   po::options_description desc("Options");
   desc.add_options()
-      ("help,h", "Generate this help message")
-      ("dry-run,n", "do nothing")
+      ("help,h", "generate this help message")
+      ("histo,H", "generate histogram")
+      ("verbose,v", po::value< int >()->implicit_value( 1 ), "enable verbosity (optionally specify level)\n"
+        "0 - no extra details\n 1 - show events\n   - 2 show also data buffer"  )
       ("filename,f", po::value<std::string>()->default_value("/tmp/test.mdat"));
-//             ("filename,f", po::value<std::string>()->default_value("/tmp/YOURFILENAME.mdat"));
 
   po::variables_map vm;
   po::store(po::parse_command_line(argc,argv,desc),vm);
   po::notify(vm);
 
+  int verbosity = 0;
+
+if ( vm.count("verbose") ) {
+    verbosity = vm[ "verbose" ].as< int >() ;
+    std::cout << "Verbosity enabled.  Level is " << verbosity << std::endl;
+   }
+
   std::string filename;
   filename = boost::any_cast<std::string>(vm["filename"].value());
-
   std::cout << "# filename: '" << filename << std::endl;
   
   if (vm.count("help")) {
@@ -56,11 +63,7 @@ int main(int argc, char *argv[]){
     std::cout << desc << std::endl;
     return 0;
 }
-  
-  if (vm.count("n") > 0){
-   //just simulate 
-  }
-  
+    
   if (vm.count("filename") > 0)
   {
   if(!fileExists(filename))
@@ -69,19 +72,26 @@ int main(int argc, char *argv[]){
        return(EXIT_FAILURE);
       }
     else {
-  lmfile* limo;
-  limo = new lmfile(filename);
-  std::cout << "# size (Bytes): " << limo->getfilesize() << std::endl ; 
-  limo->convertlistmodefile();
-  limo->sortEventlist();
-  //limo->el_printstatus();
-  std::cout << "# Number of Events: " << limo ->getNumberOfEvents() << std::endl; 
-  limo->el_printhistogram();
-  //limo->el_printallevents();
+      lmfile* limo;
+      limo = new lmfile(filename);
+ 
+      limo->setverbositylevel(verbosity);
 
-  delete(limo);
-  return(EXIT_SUCCESS);
-  }
+
+      std::cout << "# size (Bytes): " << limo->getfilesize() << std::endl ; 
+      limo->convertlistmodefile();
+      limo->sortEventlist();
+      //limo->el_printstatus();
+      std::cout << "# Number of Events: " << limo ->getNumberOfEvents() << std::endl; 
+      
+      if (vm.count("histo")) {
+      limo->el_printhistogram();
+      }
+      //limo->el_printallevents();
+
+      delete(limo);
+      return(EXIT_SUCCESS);
+      }
   }
 }
 

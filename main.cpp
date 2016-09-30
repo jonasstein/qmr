@@ -18,12 +18,9 @@
 #define SHOW(a) 
 #endif
 
-// http://stackoverflow.com/questions/15634114/cant-link-program-using-boost-filesystem
-//#include <boost/filesystem.hpp>
 #include <sys/stat.h> // because boost::filesystem is fragile between different systems, gcc and boost versions
 
-#include <boost/program_options.hpp>
-#include <boost/program_options/options_description.hpp>
+// remove boost until I know how to make the code more portable
 
 // true if file exists
 bool fileExists(const std::string& file) {
@@ -31,31 +28,34 @@ bool fileExists(const std::string& file) {
     return (stat(file.c_str(), &buf) == 0);
 }
 
+void printhelp(){
+  std::cout << "Usage:" << std::endl;
+  std::cout << "Usage: qmr <det> <sync> <super> <mon> <verbosity> <mode>" << std::endl;
+}
 
 int main(int argc, char *argv[]){
 
-  namespace po = boost::program_options;
-  po::options_description desc("Options");
-  desc.add_options()
-      ("help,h", "generate this help message")
-      ("histo,H", "generate histogram")
-      ("verbose,v", po::value< int >()->implicit_value( 1 ), "enable verbosity (optionally specify level)\n"
-        "0 - no extra details\n 1 - show events\n   - 2 show also data buffer"  )
-      ("filename,f", po::value<std::string>()->default_value("/tmp/test.mdat"));
+  uint8_t ArgChDet;
+  uint8_t ArgChSync;
+  uint8_t ArgChSuper;
+  uint8_t ArgChMon;
+  uint8_t ArgVerbosity;
+  uint8_t ArgMode;
+  std::string  ArgFilename;
 
-  po::variables_map vm;
-  po::store(po::parse_command_line(argc,argv,desc),vm);
-  po::notify(vm);
+  
+  if (argc == 7)
+  {
+    std::istringstream iss(arg[i]);
+    iss >> ArgChDet;  
+  }
+    
+  
 
   int verbosity = 0;
 
-if ( vm.count("verbose") ) {
-    verbosity = vm[ "verbose" ].as< int >() ;
-    std::cout << "Verbosity enabled.  Level is " << verbosity << std::endl;
-   }
 
-  std::string filename;
-  filename = boost::any_cast<std::string>(vm["filename"].value());
+  
   std::cout << "# filename: '" << filename << std::endl;
   
   if (vm.count("help")) {

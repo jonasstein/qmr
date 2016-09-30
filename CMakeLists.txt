@@ -3,19 +3,17 @@ enable_testing()
 include(CheckCXXCompilerFlag)
 
 # CMAKE_CXX_FLAGS="O2"
-SET( CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -std=c++11 -lboost_system -lboost_program_options" )
+SET( CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -std=c++11" )
 
 cmake_minimum_required (VERSION 2.6)
 project (qmread)
 
-add_executable(qmr main.cpp)
+# add_executable(qmr main.cpp)
+add_executable(qmrdump dump.cpp)
 
-target_link_libraries(qmr lm )
+target_link_libraries(qmrdump lm )
 
 # set(CMAKE_BUILD_TYPE Release)
-
-
-
 
 add_library(lm SHARED lmfile.cpp histogram.cpp)
 
@@ -30,15 +28,15 @@ add_executable(runTests tests.cpp)
 add_test(all runTests)
 
 
-set(Boost_USE_STATIC_LIBS OFF) 
-set(Boost_USE_MULTITHREADED OFF)  
-set(Boost_USE_STATIC_RUNTIME ON) 
-find_package(Boost 1.56.0 COMPONENTS filesystem program_options) 
+#set(Boost_USE_STATIC_LIBS OFF) 
+#set(Boost_USE_MULTITHREADED OFF)  
+#set(Boost_USE_STATIC_RUNTIME ON) 
+#find_package(Boost 1.56.0 COMPONENTS filesystem program_options) 
 
-if(Boost_FOUND)
-  include_directories(${Boost_INCLUDE_DIRS})
-  target_link_libraries(runTests lm ${GTEST_LIBRARIES} pthread ${Boost_LIBRARIES})
-endif()
+#if(Boost_FOUND)
+	#  include_directories(${Boost_INCLUDE_DIRS})
+	#  target_link_libraries(runTests lm ${GTEST_LIBRARIES} pthread)
+	#endif()
 
 
 

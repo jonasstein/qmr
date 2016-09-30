@@ -138,7 +138,7 @@ void lmfile::DebugPrintFullEvent(triggerevent OneFullEvent, bool PrintOnlyHeader
     std::cout << "TrigID, DataID, Data, Time_ns" << std::endl;
   }
   else {
-    std::printf("%d, %d, %llu, %llu \n", OneFullEvent.TrigID, OneFullEvent.DataID, OneFullEvent.Data, 
+    std::printf("%d, %d, %u, %lu \n", OneFullEvent.TrigID, OneFullEvent.DataID, OneFullEvent.Data, 
                 OneFullEvent.EventTimestamp_ns - FirstOffsetTimestamp_ns);
     //std::cout << std::dec << (uint16_t) OneFullEvent.TrigID;
     //std::cout << ", " << std::dec << (uint16_t) OneFullEvent.DataID;

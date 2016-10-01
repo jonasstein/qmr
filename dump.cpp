@@ -35,7 +35,7 @@ int main(int argc, char *argv[]){
 
   if(!fileExists(ArgFilename))
       {
-       std::cout << "File not found: " << ArgFilename << std::endl;
+       std::cerr << "File not found: " << ArgFilename << std::endl;
        return(EXIT_FAILURE);
       }
     else {
@@ -44,11 +44,11 @@ int main(int argc, char *argv[]){
 
       limo->setverbositylevel(verbosity);
 
-      std::cout << "# size (Bytes): " << limo->getfilesize() << std::endl ; 
+      std::cerr << "# size (Bytes): " << limo->getfilesize() << std::endl ; 
       limo->convertlistmodefile();
       limo->sortEventlist();
       //limo->el_printstatus();
-      std::cout << "# Number of Events: " << limo ->getNumberOfEvents() << std::endl; 
+      std::cerr << "# Number of Events: " << limo ->getNumberOfEvents() << std::endl; 
 
 //      if (vm.count("histo")) {
 //      limo->el_printhistogram();
@@ -61,7 +61,7 @@ int main(int argc, char *argv[]){
   }
 
   else{
-    std::cout << "Error wrong number of arguments. Stopped." << std::endl;
+    std::cerr << "Error wrong number of arguments. Stopped." << std::endl;
     printhelp();
   }
     

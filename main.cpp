@@ -5,7 +5,6 @@
 #include <string>     // std::string, std::stoull
 #include <stdio.h>
 #include <byteswap.h> // http://stackoverflow.com/questions/105252/how-do-i-convert-between-big-endian-and-little-endian-values-in-c
-#include <inttypes.h>
 #include "lmfile.hpp"
 #include "histogram.hpp"
 #include <assert.h>     /* assert */

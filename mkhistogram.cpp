@@ -33,12 +33,12 @@ int main(int argc, char *argv[]){
   
   // read parameter  
   std::string ArgThisProgram(argv[0]);
-  uint8_t ArgChDet=1;
-  uint8_t ArgChSync=3;
-  uint8_t ArgChSuper=3;
-  uint8_t ArgChMonitor=4;
+  int32_t ArgChDet=0;
+  int32_t ArgChSync=1;
+  int32_t ArgChSuper=2;
+  int32_t ArgChMonitor=3;
   
-  std::cerr << " ChDet:" << (int)ArgChDet << " ChSync:" << (int)ArgChSync << " ChSuper:" << (int)ArgChSuper << " ChMonitor:" << (int)ArgChMonitor << std::endl;
+  std::cerr << " ChDet:" << ArgChDet << " ChSync:" << ArgChSync << " ChSuper:" << ArgChSuper << " ChMonitor:" << ArgChMonitor << std::endl;
 
   std::string ArgFilename(argv[5]);
   std::cout <<ArgFilename << std::endl;
@@ -61,31 +61,32 @@ int main(int argc, char *argv[]){
   // if not SUPER read CURRENTts and printf 
   // if SUPER then histo.print(); histo.reset()
   
-  uint64_t STARTts;
-  uint64_t SYNCts;
-  uint64_t SUPERts;
-  uint64_t CURRENTts;
+  int64_t STARTts;
+  int64_t SYNCts;
+  int64_t SUPERts;
+  int64_t CURRENTts;
   
   
-  uint64_t SYNCtsSUM=0;
-  uint64_t SYNCtsQty=0;
-  uint64_t SYNCtsMEAN=0;
+  int64_t SYNCtsSUM=0;
+  int64_t SYNCtsQty=0;
+  int64_t SYNCtsMEAN=0;
   
-  uint8_t TrigID; 
-  uint8_t DataID;
-  uint32_t Data;
+  int8_t TrigID; 
+  int8_t DataID;
+  int32_t Data;
   
   
   // calculate mean time between SYNC 
   while (!ifs.eof()){
     ifs >> CURRENTts >> TrigID >> DataID >> Data;
     
-    std::cout << (int)DataID << std::endl;
+    std::cout << TrigID << " " << DataID << std::endl;
     if ((TrigID==7)&&(DataID==3)){
         SYNCtsSUM+=CURRENTts;
         SYNCtsQty++;
         std::cout << ifs.tellg() << std::endl;
     }
+//    else{std::cout<<"boo"<<std::endl;}
   }
   
   if (SYNCtsQty==0){

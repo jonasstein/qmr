@@ -36,10 +36,6 @@ struct triggerevent{
   eventtime_t EventTimestamp_ns = 0;
 };   
 
-bool operator<(const triggerevent& a, const triggerevent& b)
-{
-    return a.EventTimestamp_ns < b.EventTimestamp_ns;
-}
 
 
 eventtime_t FirstOffsetTimestamp_ns = 0; 
@@ -122,6 +118,7 @@ class lmfile
     void el_printallevents();
     void el_printhistogram();
     void setverbositylevel(uint8_t);
+    inline bool operator<(const triggerevent& lhs, const triggerevent& rhs);
 };
 
 // This is the end of the header guard

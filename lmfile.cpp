@@ -135,11 +135,11 @@ triggerevent lmfile::parseEvent(uint16_t LoWord, uint16_t MiWord, uint16_t HiWor
 void lmfile::DebugPrintFullEvent(triggerevent OneFullEvent, bool PrintOnlyHeader)
 {
   if (PrintOnlyHeader==true){
-    std::cout << "TrigID, DataID, Data, Time_ns" << std::endl;
+    std::cout << "Time_ns, TrigID, DataID, Data" << std::endl;
   }
   else {
-    std::printf("%d, %d, %u, %lu \n", OneFullEvent.TrigID, OneFullEvent.DataID, OneFullEvent.Data, 
-                OneFullEvent.EventTimestamp_ns - FirstOffsetTimestamp_ns);
+    std::printf("%18lu,%u,%u,%u\n", OneFullEvent.EventTimestamp_ns - FirstOffsetTimestamp_ns, 
+                OneFullEvent.TrigID, OneFullEvent.DataID, OneFullEvent.Data);
     //std::cout << std::dec << (uint16_t) OneFullEvent.TrigID;
     //std::cout << ", " << std::dec << (uint16_t) OneFullEvent.DataID;
     //std::cout << ", " << OneFullEvent.Data;
@@ -153,12 +153,12 @@ void lmfile::DebugPrintFullEvent(triggerevent OneFullEvent, bool PrintOnlyHeader
     }
     else {
       std::cout << dblock.metaBuffernumber; 
-      std::cout << ", " << dblock.metaPreviousBuffernumber;
-      std::cout << ", " << dblock.metaBufferlength;
-      std::cout << ", " << dblock.metaBuffertype;
-      std::cout << ", " << dblock.metaHeaderlength;  
-      std::cout << ", " << dblock.header_timestamp_ns;
-      std::cout << ", " << FirstOffsetTimestamp_ns << std::endl;
+      std::cout << "," << dblock.metaPreviousBuffernumber;
+      std::cout << "," << dblock.metaBufferlength;
+      std::cout << "," << dblock.metaBuffertype;
+      std::cout << "," << dblock.metaHeaderlength;  
+      std::cout << "," << dblock.header_timestamp_ns;
+      std::cout << "," << FirstOffsetTimestamp_ns << std::endl;
     }
   }
   

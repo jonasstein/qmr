@@ -31,7 +31,7 @@ int main(int argc, char *argv[]){
   {
   std::string ArgFilename(argv[1]);
 
-  int verbosity = 3;
+  int verbosity = 1;
 
   if(!fileExists(ArgFilename))
       {

@@ -36,20 +36,19 @@ struct triggerevent{
   eventtime_t EventTimestamp_ns = 0;
 };
 
-inline bool operator<(const triggerevent& lhs, const triggerevent& rhs)
+// inline static
+bool operator<(const triggerevent& lhs, const triggerevent& rhs)
     {
           return lhs.EventTimestamp_ns < rhs.EventTimestamp_ns;
     }
 
-
 eventtime_t FirstOffsetTimestamp_ns = 0; 
 
 const uint64_t headersignature     = 0x00005555AAAAFFFF;
-  const uint64_t datablocksignature  = 0x0000FFFF5555AAAA;
-  const uint64_t filesignature       = 0xFFFFAAAA55550000;
-  
- 
-  
+const uint64_t datablocksignature  = 0x0000FFFF5555AAAA;
+const uint64_t filesignature       = 0xFFFFAAAA55550000;
+
+
 typedef uint64_t ufilesize_t;
 typedef struct rawevent_t { char x[6]; } rawevent_t;
 

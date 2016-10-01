@@ -337,7 +337,7 @@ void lmfile::setverbositylevel(uint8_t vlevel)
  verbosityLevel = vlevel; 
 }
 
-inline bool lmfile::operator<(const triggerevent& lhs, const triggerevent& rhs)
+bool lmfile::operator<(const triggerevent& lhs, const triggerevent& rhs)
 {
     return lhs.EventTimestamp_ns < rhs.EventTimestamp_ns;
 }

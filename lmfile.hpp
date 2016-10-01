@@ -34,8 +34,12 @@ struct triggerevent{
   uint8_t DataID = 0;
   uint32_t Data = 0; //Counter, Timer or ADC value of the identified data source 21 bit
   eventtime_t EventTimestamp_ns = 0;
-};   
+};
 
+inline bool operator<(const triggerevent& lhs, const triggerevent& rhs)
+    {
+          return lhs.EventTimestamp_ns < rhs.EventTimestamp_ns;
+    }
 
 
 eventtime_t FirstOffsetTimestamp_ns = 0; 
@@ -118,7 +122,6 @@ class lmfile
     void el_printallevents();
     void el_printhistogram();
     void setverbositylevel(uint8_t);
-    inline bool operator<(const triggerevent& lhs, const triggerevent& rhs);
 };
 
 // This is the end of the header guard

@@ -6,7 +6,6 @@
 #include <string>     // std::string, std::stoull
 #include <stdio.h>
 #include <assert.h>     /* assert */
-#include <limits>
 #include <sys/stat.h> // because boost::filesystem is fragile between different systems, gcc and boost versions
 #include "histogram.hpp"
 
@@ -29,17 +28,21 @@ int main(int argc, char *argv[]){
     exit(3);
   }
   
+  const long INFOMODE=1;
+  const long HISTOGRAMMODE=2;
+  const long MAX64INT = 9223372036854775807;
+  
   // read parameter  
   std::string ArgThisProgram(argv[0]);
-  int64_t ArgChDet= atoi(argv[1]);
-  int64_t ArgChSync=atoi(argv[2]);
-  int64_t ArgChSuper=atoi(argv[3]);
-  int64_t ArgChMonitor=atoi(argv[4]);
+  long ArgChDet= atol(argv[1]);
+  long ArgChSync=atol(argv[2]);
+  long ArgChSuper=atol(argv[3]);
+  long ArgChMonitor=atol(argv[4]);
   std::string ArgFilename(argv[5]);
-  int64_t ArgSTARTts=atoi(argv[6]);
-  int64_t ArgSTOPts=atoi(argv[7]);
-  int64_t ArgBins=atoi(argv[8]);
-  int64_t ArgMode=atoi(argv[9]); // 1=get sync info, 2=generate histogram
+  long ArgSTARTts=atol(argv[6]);
+  long ArgSTOPts=atol(argv[7]);
+  long ArgBins=atol(argv[8]);
+  long ArgMode=atol(argv[9]); // 1=get info about periods, 2=generate histogram
   
   std::cerr << "Read file " << ArgFilename << std::endl;  
   std::cerr << "Evaluate between min and max timestamps: (-1 no limits)" << std::endl; 
@@ -48,10 +51,7 @@ int main(int argc, char *argv[]){
   std::cerr << "Generate histograms with " << ArgBins << " bins" << std::endl;  
   std::cerr << "ChDet:" << ArgChDet << " ChSync:" << ArgChSync << " ChSuper:" << ArgChSuper << " ChMonitor:" << ArgChMonitor << std::endl;
   
-  if (ArgSTOPts==-1){
-    ArgSTOPts = std::numeric_limits<int64_t>::max();
-  }
-
+  if (ArgSTOPts==-1){ArgSTOPts = MAX64INT;}
   
   std::ifstream ifs;
   ifs.open(ArgFilename, std::ifstream::in);
@@ -71,17 +71,18 @@ int main(int argc, char *argv[]){
   // if not SUPER read CURRENTts and printf 
   // if SUPER then histo.print(); histo.reset()
   
-  int64_t CURRENTts;
-  int64_t SYNCtsSUM=0;
-  int64_t SYNCtsQty=0;
-  int64_t SYNCtsMEAN=0;
-  int64_t LastSYNCts=0;
-  int64_t MindSYNCts=std::numeric_limits<int64_t>::max();
-  int64_t MaxdSYNCts=0;
+  long CURRENTts;
+  uint64_t uCURRENTts;
+  long SYNCtsSUM=0;
+  long SYNCtsQty=0;
+  long SYNCtsMEAN=0;
+  long LastSYNCts=0;
+  long MindSYNCts=MAX64INT;
+  long MaxdSYNCts=0;
   
-  int64_t TrigID; 
-  int64_t DataID;
-  int64_t Data;
+  long TrigID; 
+  long DataID;
+  long Data;
   
   
   // calculate mean time between SYNC 
@@ -91,25 +92,59 @@ int main(int argc, char *argv[]){
       
       if ((TrigID==7)&&(DataID==ArgChSync)){ //found a SYNC event
         if (LastSYNCts>0){
-          std::cout<< CURRENTts - LastSYNCts << " ns period between " << LastSYNCts << " ns and " << CURRENTts << " ns"<< std::endl;
+          if (ArgMode==INFOMODE){
+            std::cout<< CURRENTts - LastSYNCts << " ns period between " << LastSYNCts << " ns and " << CURRENTts << " ns"<< std::endl;
+          }
         }
-        
         SYNCtsSUM+=CURRENTts;
         SYNCtsQty++;
         LastSYNCts=CURRENTts;
-        //        std::cout << ifs.tellg() << std::endl;
       }
     }}
     
     if (SYNCtsQty==0){
-      std::cout << "Zero SYNC signals found!" << std::endl;  
+      std::cerr << "Zero SYNC signals found on channel " << ArgChSync << " !" << std::endl;  
     }
     else{
       SYNCtsMEAN = SYNCtsSUM/SYNCtsQty;
-      std::cout << "# avg SYNC period: " << SYNCtsMEAN << " ns = " << (float)(SYNCtsSUM/SYNCtsQty)/1000000 << " ms " << std::endl;
-      std::cout << "# min SYNC period: " << MindSYNCts << " ns = " << (float)(MindSYNCts)/1000000 << " ms " << std::endl;
-      std::cout << "# max SYNC period: " << MaxdSYNCts << " ns = " << (float)(MaxdSYNCts)/1000000 << " ms " << std::endl;
+      if (ArgMode==INFOMODE){
+        std::cout << "# avg SYNC period: " << SYNCtsMEAN << " ns = " << (float)(SYNCtsSUM/SYNCtsQty)/1000000 << " ms " << std::endl;
+        std::cout << "# min SYNC period: " << MindSYNCts << " ns = " << (float)(MindSYNCts)/1000000 << " ms " << std::endl;
+        std::cout << "# max SYNC period: " << MaxdSYNCts << " ns = " << (float)(MaxdSYNCts)/1000000 << " ms " << std::endl;
+      }
+    }
+    
+    if (ArgMode==HISTOGRAMMODE){
+      ifs.seekg (0, ifs.beg); // go to file start again
       
+      LastSYNCts = ArgSTARTts; //set time t0
+      
+      histogram* histo;
+      histo = new histogram(ArgBins, SYNCtsMEAN);
+      
+      
+      while (!ifs.eof()){
+        ifs >> CURRENTts >> TrigID >> DataID >> Data;
+        if ((ArgSTARTts < CURRENTts )&& (CURRENTts < ArgSTOPts) ){
+          
+          if ((TrigID==7)&&(DataID==ArgChDet)){ //found a detector event
+            uCURRENTts = CURRENTts+LastSYNCts;
+            histo-> put(uCURRENTts); 
+          }
+          
+          if ((TrigID==7)&&(DataID==ArgChSync)){ //found a sync event
+            LastSYNCts=CURRENTts;        
+          }
+          
+          if ((TrigID==7)&&(DataID==ArgChSuper)){ //found a super event (new histogram/new scan)
+            histo-> print();
+            histo-> reset();
+          }
+        }
+      }
+      
+      histo-> print();
+      delete(histo); 
     }
     
     ifs.close();

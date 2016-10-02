@@ -16,12 +16,12 @@ bool fileExists(const std::string& file) {
 }
 
 void printhelp(){
-  std::cout << "Usage: mkhistogram <ChDet> <ChSync> <ChSuper> <ChMonitor> <filename> <STARTts> <STOPts> <bins> <mode>" << std::endl;
+  std::cout << "Usage: mkhistogram <ChDet> <ChSync> <ChSuper> <ChMonitor> <filename> <bins> <mode>" << std::endl;
 }
 
 int main(int argc, char *argv[]){
   
-  if (argc != 10)
+  if (argc != 8)
   {
     std::cout << "Error wrong number of arguments. Stopped." << std::endl;
     printhelp();
@@ -39,19 +39,12 @@ int main(int argc, char *argv[]){
   long ArgChSuper=atol(argv[3]);
   long ArgChMonitor=atol(argv[4]);
   std::string ArgFilename(argv[5]);
-  long ArgSTARTts=atol(argv[6]);
-  long ArgSTOPts=atol(argv[7]);
-  long ArgBins=atol(argv[8]);
-  long ArgMode=atol(argv[9]); // 1=get info about periods, 2=generate histogram
+  long ArgBins=atol(argv[6]);
+  long ArgMode=atol(argv[7]); // 1=get info about periods, 2=generate histogram
   
   std::cerr << "Read file " << ArgFilename << std::endl;  
-  std::cerr << "Evaluate between min and max timestamps: (-1 no limits)" << std::endl; 
-  std::cerr << ArgSTARTts << std::endl; 
-  std::cerr << ArgSTOPts << std::endl; 
   std::cerr << "Generate histograms with " << ArgBins << " bins" << std::endl;  
   std::cerr << "ChDet:" << ArgChDet << " ChSync:" << ArgChSync << " ChSuper:" << ArgChSuper << " ChMonitor:" << ArgChMonitor << std::endl;
-  
-  if (ArgSTOPts==-1){ArgSTOPts = MAX64INT;}
   
   std::ifstream ifs;
   ifs.open(ArgFilename, std::ifstream::in);
@@ -71,6 +64,7 @@ int main(int argc, char *argv[]){
   // if not SUPER read CURRENTts and printf 
   // if SUPER then histo.print(); histo.reset()
   
+  long StartOffsetts=0;
   long CURRENTts;
   uint64_t uCURRENTts;
   long SYNCtsSUM=0;
@@ -88,27 +82,34 @@ int main(int argc, char *argv[]){
   // calculate mean time between SYNC 
   while (!ifs.eof()){
     ifs >> CURRENTts >> TrigID >> DataID >> Data;
-    if ((ArgSTARTts < CURRENTts )&& (CURRENTts < ArgSTOPts) ){
+      if (StartOffsetts==0){StartOffsetts=CURRENTts;}
+      CURRENTts-=StartOffsetts;
       
       if ((TrigID==7)&&(DataID==ArgChSync)){ //found a SYNC event
         if (LastSYNCts>0){
           if (ArgMode==INFOMODE){
             std::cout<< CURRENTts - LastSYNCts << " ns period between " << LastSYNCts << " ns and " << CURRENTts << " ns"<< std::endl;
+            MindSYNCts = std::min(MindSYNCts, CURRENTts-LastSYNCts);
+            MaxdSYNCts = std::max(MaxdSYNCts, CURRENTts-LastSYNCts);
           }
         }
-        SYNCtsSUM+=CURRENTts;
+        SYNCtsSUM+=(CURRENTts-LastSYNCts);
+        
         SYNCtsQty++;
         LastSYNCts=CURRENTts;
       }
-    }}
+    }
     
+        
     if (SYNCtsQty==0){
       std::cerr << "Zero SYNC signals found on channel " << ArgChSync << " !" << std::endl;  
     }
     else{
       SYNCtsMEAN = SYNCtsSUM/SYNCtsQty;
       if (ArgMode==INFOMODE){
-        std::cout << "# avg SYNC period: " << SYNCtsMEAN << " ns = " << (float)(SYNCtsSUM/SYNCtsQty)/1000000 << " ms " << std::endl;
+        std::cout << "# Start offset ts: " << StartOffsetts  << std::endl;
+        std::cout << "# SYNC event found: " << SYNCtsQty  << std::endl;
+        std::cout << "# avg SYNC period: " << SYNCtsMEAN << " ns = " << (float)(SYNCtsMEAN)/1000000 << " ms " << std::endl;
         std::cout << "# min SYNC period: " << MindSYNCts << " ns = " << (float)(MindSYNCts)/1000000 << " ms " << std::endl;
         std::cout << "# max SYNC period: " << MaxdSYNCts << " ns = " << (float)(MaxdSYNCts)/1000000 << " ms " << std::endl;
       }
@@ -117,18 +118,18 @@ int main(int argc, char *argv[]){
     if (ArgMode==HISTOGRAMMODE){
       ifs.seekg (0, ifs.beg); // go to file start again
       
-      LastSYNCts = ArgSTARTts; //set time t0
+      LastSYNCts = 0; //set time t0
       
       histogram* histo;
       histo = new histogram(ArgBins, SYNCtsMEAN);
       
-      
       while (!ifs.eof()){
         ifs >> CURRENTts >> TrigID >> DataID >> Data;
-        if ((ArgSTARTts < CURRENTts )&& (CURRENTts < ArgSTOPts) ){
-          
+        CURRENTts-=StartOffsetts;
+        
           if ((TrigID==7)&&(DataID==ArgChDet)){ //found a detector event
-            uCURRENTts = CURRENTts+LastSYNCts;
+            uCURRENTts = CURRENTts-LastSYNCts;
+            std::cout << CURRENTts << std::endl;
             histo-> put(uCURRENTts); 
           }
           
@@ -140,7 +141,6 @@ int main(int argc, char *argv[]){
             histo-> print();
             histo-> reset();
           }
-        }
       }
       
       histo-> print();

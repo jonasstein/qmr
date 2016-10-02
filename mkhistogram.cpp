@@ -56,7 +56,6 @@ int main(int argc, char *argv[]){
     exit(1);
   }
   
-  
   // read .csv, read line, if not comment, 
   // if SYNC, then save new SYNC, inc SYNCcounter
   // calculate mean(SYNC(k))
@@ -79,8 +78,6 @@ int main(int argc, char *argv[]){
   long long DataID;
   long long Data;
 
-  
-  
   // calculate mean time between SYNC 
   while (!ifs.eof()){
     ifs >> CURRENTts >> TrigID >> DataID >> Data;
@@ -96,13 +93,11 @@ int main(int argc, char *argv[]){
           }
         }
         SYNCtsSUM+=(CURRENTts-LastSYNCts);
-        
         SYNCtsQty++;
         LastSYNCts=CURRENTts;
-      }
     }
+  }
     
-        
     if (SYNCtsQty==0){
       std::cerr << "Zero SYNC signals found on channel " << ArgChSync << " !" << std::endl;  
     }
@@ -119,10 +114,11 @@ int main(int argc, char *argv[]){
     
     long long buffer;
     std::string::size_type sz = 0;   // alias of size_t
-    
+    ifs.clear();
     
     if (ArgMode==HISTOGRAMMODE){
       ifs.seekg (0, ifs.beg); // go to file start again
+      std::cout << ifs.tellg() << " ======= " << std::endl;
       
       LastSYNCts = 0; //set time t0
       
@@ -146,7 +142,6 @@ int main(int argc, char *argv[]){
         ifs >> NumberString;
         Data = std::stoll(NumberString,&sz,0);
     */    
-        
         std::cout << CURRENTts << std::endl;
         assert(CURRENTts >= StartOffsetts);
         CURRENTts-=StartOffsetts;
@@ -158,7 +153,6 @@ int main(int argc, char *argv[]){
           
           if ((TrigID==7)&&(DataID==ArgChSync)){ //found a sync event
             LastSYNCts=CURRENTts;
-            
           }
           
           if ((TrigID==7)&&(DataID==ArgChSuper)){ //found a super event (new histogram/new scan)

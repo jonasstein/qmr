@@ -4,27 +4,22 @@
 #include <iostream>     // std::cout
 #include <fstream>      // std::ifstream
 #include <string>     // std::string, std::stoull
-#include <stdio.h>
+//#include <stdio.h>
 #include <assert.h>     /* assert */
-#include <sys/stat.h> // because boost::filesystem is fragile between different systems, gcc and boost versions
 #include "histolong.hpp"
 
-
-// true if file exists
-bool fileExists(const std::string& file) {
-  struct stat buf;
-  return (stat(file.c_str(), &buf) == 0);
-}
-
 void printhelp(){
+  std::cout << "mkhistogram by Jonas Stein (2016)" << std::endl;
   std::cout << "Usage: mkhistogram <ChDet> <ChSync> <ChSuper> <ChMonitor> <filename> <bins> <mode>" << std::endl;
+  std::cout << "Only ChMonitor 0..3 will be printed" << std::endl;
+  std::cout << "mode = 1 infomode, 2 histogram" << std::endl;
 }
 
 int main(int argc, char *argv[]){
  
   if (argc != 8)
   {
-    std::cout << "Error wrong number of arguments. Stopped." << std::endl;
+    std::cerr << "Error wrong number of arguments. Stopped." << std::endl;
     printhelp();
     exit(3);
   }
@@ -123,10 +118,12 @@ int main(int argc, char *argv[]){
 
       LastSYNCts = 0; //set time t0
       
-      histogram* histo;
-      histo = new histogram(ArgBins, SYNCtsMEAN/ArgBins);
+      histogram* histoDet;
+      histoDet = new histogram(ArgBins, SYNCtsMEAN/ArgBins);
 
-  
+      histogram* histoMon;
+      histoMon = new histogram(ArgBins, SYNCtsMEAN/ArgBins);
+      
       while (!ifs.eof()){
         ifs >> CURRENTts >> TrigID >> DataID >> Data;
 
@@ -136,8 +133,14 @@ int main(int argc, char *argv[]){
         
           if ((TrigID==7)&&(DataID==ArgChDet)){ //found a detector event
             buffer = (CURRENTts-LastSYNCts);
-            histo-> put(buffer); 
+            histoDet-> put(buffer); 
           }
+          
+          if ((TrigID==7)&&(DataID==ArgChMonitor)&&(ArgChMonitor<4)){ //found a monitor event
+            buffer = (CURRENTts-LastSYNCts);
+            histoMon-> put(buffer); 
+          }
+          
           
           if ((TrigID==7)&&(DataID==ArgChSync)){ //found a sync event
             LastSYNCts=CURRENTts;
@@ -145,16 +148,23 @@ int main(int argc, char *argv[]){
           
           if ((TrigID==7)&&(DataID==ArgChSuper)){ //found a super event (new histogram/new scan)
             if (FirstPrintOut){
-              histo->printheader();
+              histoDet->printheader();
+              if (ArgChMonitor<4){histoMon->printheader();} // suppress output of empty monitor histograms
               FirstPrintOut=false;
             }
-            histo-> print();
-            histo-> reset();
+            histoDet-> print();
+            histoDet-> reset();
+            if (ArgChMonitor<4){
+              histoMon->printheader();
+              histoMon->reset();
+            }
           }
       }
       
-      histo-> print();
-      delete(histo); 
+      histoDet-> print();
+      delete(histoDet); 
+      if (ArgChMonitor<4){histoMon->printheader();} // suppress output of empty monitor histograms
+      delete(histoMon);
     }
 
     ifs.close();

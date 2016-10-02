@@ -1,8 +1,7 @@
-#include "js_debug.cpp"
+//#include "js_debug.cpp"
 #include <iostream>     // std::cout
 #include "histolong.hpp"
 #include <cstdint>
-#include <stdio.h>
 //#define NDEBUG  // at the beginning of the code, before the inclusion of <assert.h> will disable all asserts
 #include <assert.h>
 

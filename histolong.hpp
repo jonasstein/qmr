@@ -2,7 +2,7 @@
 #ifndef histogram_H
 #define histogram_H
 
-#include "js_debug.cpp"
+//#include "js_debug.cpp"
 
 
 class histogram{

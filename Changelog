@@ -1,0 +1,4 @@
+
+2016-10-02 Jonas Stein <news@jonasstein.de>
+	* released version v2.0.0 without boost, cmake and gtest dependency
+	* cleaned code

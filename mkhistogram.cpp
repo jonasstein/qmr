@@ -78,6 +78,8 @@ int main(int argc, char *argv[]){
   long long DataID;
   long long Data;
 
+  bool FirstPrintOut=true;
+  
   // calculate mean time between SYNC 
   while (!ifs.eof()){
     ifs >> CURRENTts >> TrigID >> DataID >> Data;
@@ -118,31 +120,17 @@ int main(int argc, char *argv[]){
     
     if (ArgMode==HISTOGRAMMODE){
       ifs.seekg (0, ifs.beg); // go to file start again
-      std::cout << ifs.tellg() << " ======= " << std::endl;
-      
+
       LastSYNCts = 0; //set time t0
       
       histogram* histo;
       histo = new histogram(ArgBins, SYNCtsMEAN/ArgBins);
 
-  //    std::string NumberString;
-     
+  
       while (!ifs.eof()){
         ifs >> CURRENTts >> TrigID >> DataID >> Data;
-        
-    /*    ifs >> NumberString;
-        CURRENTts = std::stoll(NumberString,&sz,0);
-        
-        ifs >> NumberString;
-        TrigID = std::stoll(NumberString,&sz,0);
-        
-        ifs >> NumberString;
-        DataID = std::stoll(NumberString,&sz,0);
-        
-        ifs >> NumberString;
-        Data = std::stoll(NumberString,&sz,0);
-    */    
-        std::cout << CURRENTts << std::endl;
+
+        //std::cout << CURRENTts << std::endl;
         assert(CURRENTts >= StartOffsetts);
         CURRENTts-=StartOffsetts;
         
@@ -156,6 +144,10 @@ int main(int argc, char *argv[]){
           }
           
           if ((TrigID==7)&&(DataID==ArgChSuper)){ //found a super event (new histogram/new scan)
+            if (FirstPrintOut){
+              histo->printheader();
+              FirstPrintOut=false;
+            }
             histo-> print();
             histo-> reset();
           }
@@ -164,7 +156,7 @@ int main(int argc, char *argv[]){
       histo-> print();
       delete(histo); 
     }
-    
+
     ifs.close();
     return(EXIT_SUCCESS);
 }

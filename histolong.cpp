@@ -17,16 +17,13 @@ histogram::histogram(const long long setmaxbuckets, const long long setbinwidth)
 histogram::~histogram()
 {}
 
-void histogram::put(long long Eventts)
+void histogram::put(long long &Eventts)
 {
   long long timeOnHistoScale;
   long long index = 0;
   timeOnHistoScale = Eventts % (maxbuckets*binwidth);
-  std::cout << Eventts << " <<<< " << std::endl;
-  // std::cout << timeOnHistoScale << " " << value << " " << maxbuckets << " " << binwidth << std::endl; 
   index = (long) ((timeOnHistoScale * maxbuckets) / fullperiod_ns);
   buckets[index]++;
-  std::cout << index << " : " << buckets[index] << std::endl;
 }
 
 void histogram::reset()
@@ -36,16 +33,22 @@ void histogram::reset()
    }
 }
 
+void histogram::printheader()
+{
+  for( long long a = 0; a < maxbuckets; a++ ){
+   if (a < maxbuckets-1)
+   {
+     std::cout << a * binwidth << ",";
+   }else std::cout << a * binwidth << std::endl;
+  }
+}
+
 void histogram::print()
 {
-  //std::cout << "# maxbuckets: " << maxbuckets << std::endl;
-  //std::cout << "# period_ns: " << period_ns << std::endl;
-  //for( uint16_t a = 0; a < maxbuckets; a++ )
-  // {std::cout << a << ", ";}
-  //std::cout << std::endl;
-
-  for( long long a = 0; a < maxbuckets; a++ )
-  {std::cout << a * binwidth << ", " << buckets[a] << ", " << std::endl;}
-
-  std::cout << std::endl;
+  for( long long a = 0; a < maxbuckets; a++ ){
+   if (a < maxbuckets-1)
+   {
+     std::cout << buckets[a] << ",";
+   }else std::cout << buckets[a] << std::endl;
+  }
 }

@@ -16,8 +16,9 @@ public:
   histogram(const long long setmaxbuckets, const long long setbinwidth);
   ~histogram();
   
-  void put(long long value);
+  void put(long long &Eventts);
   void reset();
+  void printheader();
   void print();
 };
 

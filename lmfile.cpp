@@ -8,13 +8,13 @@
 #include <string>     // std::string, std::stoull
 #include <stdio.h>
 #include <byteswap.h> // http://stackoverflow.com/questions/105252/how-do-i-convert-between-big-endian-and-little-endian-values-in-c
-#include <iomanip>
+//#include <iomanip>
 #include <math.h>       /* pow */
 //#define NDEBUG  // at the beginning of the code, before the inclusion of <assert.h> will disable all asserts
 #include <assert.h>
 #include <vector>
-#include <bitset>
-#include <algorithm>
+//#include <bitset>
+//#include <algorithm>
 #include "histogram.hpp"
 
 #include <gtest/gtest.h> // add google test 
@@ -236,12 +236,7 @@ void lmfile::DebugPrintFullEvent(triggerevent OneFullEvent, bool PrintOnlyHeader
     Eventlist.push_back(thisevent);
   }
   
-  void lmfile::sortEventlist()
-  {
-    std::sort(Eventlist.begin(), Eventlist.end());
-  }
-  
-  
+
   void lmfile::parsefileheader()
   {
     // read first line and parse secondline with number of lines

@@ -109,7 +109,7 @@ class lmfile
     ufilesize_t getNumberOfEvents();
     void parsefileheader();
     void pushEventToVector(triggerevent thisevent);
-    void sortEventlist();
+    //void sortEventlist();
     bool EOFahead();
     
     static triggerevent parseEvent(uint16_t LoWord, uint16_t MiWord, uint16_t HiWord, eventtime_t header_timestamp_ns);

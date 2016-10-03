@@ -46,7 +46,7 @@ int main(int argc, char *argv[]){
 
       std::cerr << "# size (Bytes): " << limo->getfilesize() << std::endl ; 
       limo->convertlistmodefile();
-      limo->sortEventlist();
+      //limo->sortEventlist();
       //limo->el_printstatus();
       std::cerr << "# Number of Events: " << limo ->getNumberOfEvents() << std::endl; 
 

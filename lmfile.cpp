@@ -193,7 +193,8 @@ void lmfile::DebugPrintFullEvent(triggerevent OneFullEvent, bool PrintOnlyHeader
     }
     else{
       if (dblock.metaPreviousBuffernumber +1 != dblock.metaBuffernumber){
-        std::cout<< "WWW: Missing Datablock between " << dblock.metaPreviousBuffernumber << " and " << dblock.metaBuffernumber << std::endl; 
+        std::cerr<< "WWW: Missing Datablock between " << dblock.metaPreviousBuffernumber << " and " << dblock.metaBuffernumber << std::endl; 
+        // catch 65k+1 = 0
       }
     }
     

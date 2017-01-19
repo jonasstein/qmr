@@ -220,7 +220,7 @@ void lmfile::DebugPrintFullEvent(triggerevent OneFullEvent, bool PrintOnlyHeader
     
     ifs.seekg(startposition + (dblock.metaBufferlength * 2), std::ios_base::beg);
     uint64_t sequenceRAW = lmfile::read64bit ();
-    assert(sequenceRAW == datablocksignature);
+    // FIXME assert(sequenceRAW == datablocksignature);
     dblock.metaPreviousBuffernumber = dblock.metaBuffernumber;
   }
   

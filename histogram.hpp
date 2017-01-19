@@ -7,13 +7,13 @@
 
 class histogram{
 private:
-  uint64_t buckets[10000]={}; // Make the size flexible later
-  uint16_t maxbuckets; 
+  uint64_t buckets[10000000]={}; // Make the size flexible later
+  uint64_t maxbuckets; 
   uint64_t binwidth;
   uint64_t period_ns;
   
 public:
-  histogram(const uint16_t setmaxbuckets, const uint64_t setbinwidth);
+  histogram(const uint64_t setmaxbuckets, const uint64_t setbinwidth);
   ~histogram();
   
   void put(uint64_t& value);

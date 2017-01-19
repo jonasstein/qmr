@@ -7,7 +7,7 @@
 #include <assert.h>
 
 
-histogram::histogram(const uint16_t setmaxbuckets, const uint64_t setbinwidth)
+histogram::histogram(const uint64_t setmaxbuckets, const uint64_t setbinwidth)
 {
   maxbuckets = setmaxbuckets;
   binwidth = setbinwidth;
@@ -42,7 +42,7 @@ void histogram::print()
   // {std::cout << a << ", ";}
   //std::cout << std::endl;
 
-  for( uint16_t a = 0; a < maxbuckets; a++ )
+  for( uint64_t a = 0; a < maxbuckets; a++ )
   {std::cout << a * binwidth << ", " << buckets[a] << ", " << std::endl;}
 
   std::cout << std::endl;

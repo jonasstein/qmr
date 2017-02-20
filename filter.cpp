@@ -15,11 +15,11 @@ int main(int argc, char *argv[]){
  
 if (argc != 6)
   {
-    std::cerr << "Error wrong number of arguments. Stopped." << std::endl;
+    std::cerr << "Error wrong number of arguments. Expected 5, got " << argc-1 << ". Stopped." << std::endl;
     printhelp();
     exit(3);
-  }
-
+  }  
+  
   // read parameter  
   std::string ArgThisProgram(argv[0]);
   std::string ArgFilename(argv[1]);

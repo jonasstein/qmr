@@ -119,7 +119,6 @@ class lmfile
     triggerevent el_getnexttriggerevent(eventtime_t currenttime);
     void el_printstatus();
     void el_printallevents();
-    void el_printhistogram();
     void setverbositylevel(uint8_t);
 };
 

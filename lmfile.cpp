@@ -8,14 +8,9 @@
 #include <string>     // std::string, std::stoull
 #include <stdio.h>
 #include <byteswap.h> // http://stackoverflow.com/questions/105252/how-do-i-convert-between-big-endian-and-little-endian-values-in-c
-//#include <iomanip>
-#include <math.h>       /* pow */
 //#define NDEBUG  // at the beginning of the code, before the inclusion of <assert.h> will disable all asserts
 #include <assert.h>
 #include <vector>
-//#include <bitset>
-//#include <algorithm>
-#include "histogram.hpp"
 
 #include <gtest/gtest.h> // add google test 
 #define eventtime_t uint64_t 
@@ -36,7 +31,6 @@ lmfile::~lmfile()
 void lmfile::convertlistmodefile()
 {
   lmfile::parsefileheader();
-  
   bool fileEOF=false;
   
   while (fileEOF == false)
@@ -113,7 +107,7 @@ ufilesize_t lmfile::getNumberOfEvents()
 
 triggerevent lmfile::parseEvent(uint16_t LoWord, uint16_t MiWord, uint16_t HiWord, eventtime_t header_timestamp_ns)
 {
-  //const uint64_t filterEventID     = 0b0000000000000000100000000000000000000000000000000000000000000000;
+  //const uint64_t filterEventID   = 0b0000000000000000100000000000000000000000000000000000000000000000;
   const uint64_t filterEventTrigID = 0b0000000000000000011100000000000000000000000000000000000000000000;
   const uint64_t filterEventDataID = 0b0000000000000000000011110000000000000000000000000000000000000000;
   const uint64_t filterEventData   = 0b0000000000000000000000001111111111111111111110000000000000000000;
@@ -140,10 +134,6 @@ void lmfile::DebugPrintFullEvent(triggerevent OneFullEvent, bool PrintOnlyHeader
   else {
     std::printf("%lu %u %u %u\n", OneFullEvent.EventTimestamp_ns - FirstOffsetTimestamp_ns, 
                 OneFullEvent.TrigID, OneFullEvent.DataID, OneFullEvent.Data);
-    //std::cout << std::dec << (uint16_t) OneFullEvent.TrigID;
-    //std::cout << ", " << std::dec << (uint16_t) OneFullEvent.DataID;
-    //std::cout << ", " << OneFullEvent.Data;
-    //std::cout << ", " << OneFullEvent.EventTimestamp_ns - FirstOffsetTimestamp_ns << std::endl;
   }}
   
   void lmfile::DebugPrintDatablock(bool PrintOnlyHeader)
@@ -185,6 +175,7 @@ void lmfile::DebugPrintFullEvent(triggerevent OneFullEvent, bool PrintOnlyHeader
     
     ifs.seekg(+24, std::ios_base::cur);  // ignore parameter0 .. parameter3 forward 4*3*16 bits = 24 bytes
     uint16_t eventsinthisbuffer = (dblock.metaBufferlength - 20)/3;
+    uint16_t MAXBUFFERVALUE = 65535;
     
     // now test, if buffer numbers increase
     if (dblock.ThisIsTheFirstDatabufferEverRead  == true){
@@ -192,9 +183,11 @@ void lmfile::DebugPrintFullEvent(triggerevent OneFullEvent, bool PrintOnlyHeader
       dblock.ThisIsTheFirstDatabufferEverRead  = false;    
     }
     else{
-      if (dblock.metaPreviousBuffernumber +1 != dblock.metaBuffernumber){
+      if ((dblock.metaPreviousBuffernumber == MAXBUFFERVALUE) && (dblock.metaBuffernumber==0))
+        {
+            // 65k+1 = 0 everything is fine
+        }else if (dblock.metaPreviousBuffernumber +1 != dblock.metaBuffernumber){
         std::cerr<< "WWW: Missing Datablock between " << dblock.metaPreviousBuffernumber << " and " << dblock.metaBuffernumber << std::endl; 
-        // catch 65k+1 = 0
       }
     }
     
@@ -225,7 +218,7 @@ void lmfile::DebugPrintFullEvent(triggerevent OneFullEvent, bool PrintOnlyHeader
     dblock.metaPreviousBuffernumber = dblock.metaBuffernumber;
   }
   
-  void lmfile::pushEventToVector(triggerevent thisevent)
+  void lmfile::pushEventToVector(triggerevent thisevent)// FIXME LOOK HERE AGAIN
   {
     ChSum[thisevent.DataID]++;
     
@@ -233,7 +226,6 @@ void lmfile::DebugPrintFullEvent(triggerevent OneFullEvent, bool PrintOnlyHeader
       if (PeriodTime_ns[0] == 0){PeriodTime_ns[0] = thisevent.EventTimestamp_ns;}
       else if (PeriodTime_ns[1] == 0){PeriodTime_ns[1] = thisevent.EventTimestamp_ns;}
     }
-    
     Eventlist.push_back(thisevent);
   }
   
@@ -263,16 +255,7 @@ void lmfile::DebugPrintFullEvent(triggerevent OneFullEvent, bool PrintOnlyHeader
     
     return (sequenceRAW==filesignature);
   }
-  
-  
-  void lmfile::el_addevent (eventtime_t& mytime_ns, uint8_t& myIDbyte)
-  {
-    //assert((NumberOfEvents + 1) < MAX_EVENTS);
-    //el_IDbyte[NumberOfEvents + 1] = myIDbyte;
-    //el_times_ns[NumberOfEvents + 1] = mytime_ns;
-    //NumberOfEvents += 1;
-  }
-  
+
   triggerevent lmfile::el_getnexttriggerevent(eventtime_t currenttime)
   {
     triggerevent t;
@@ -285,19 +268,16 @@ void lmfile::DebugPrintFullEvent(triggerevent OneFullEvent, bool PrintOnlyHeader
     for(int n=0; n<4; n++){
       std::cout << "Ch" << n << ": " << ChSum[n] << std::endl;  
     }
-    
     std::cout << "Period (ns): " << PeriodTime_ns[1] - PeriodTime_ns[0] << std::endl;  
   }
   
   void lmfile::el_printallevents()
   {
-    
     for (auto it = Eventlist.begin(); it!=Eventlist.end(); ++it) {
       std::cout << (*it).EventTimestamp_ns << std::endl; 
     }
   }
   
-
   
 void lmfile::setverbositylevel(uint8_t vlevel)
 {

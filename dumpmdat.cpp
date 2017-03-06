@@ -21,9 +21,8 @@ bool fileExists(const std::string& file) {
   }
 
 void printhelp(){
-    std::stringstream msg;                                  // make cout thread save
-    msg << "Usage: dump <filename>" << std::endl;  
-    std::cout << msg.str();
+    fprintf(stdout, "Usage: dumpmdat <filename> \n");
+    fprintf(stdout, "\ndumpmdat was compiled at %s on %s \n", __TIME__, __DATE__);
   }
 
 int main(int argc, char *argv[]){
@@ -31,44 +30,31 @@ int main(int argc, char *argv[]){
 
     if (argc != 2)
     {
-        msgerr << "Error wrong number of arguments. Expected 1, got " << argc-1 << ". Stopped." << std::endl;
-        std::cerr  << msgerr.str();
-
+        fprintf(stderr, "Error wrong number of arguments. Expected 1, got %d. Stopped\n", argc-1);
         printhelp();
         exit(3);
     }
     else  {
         std::string ArgFilename(argv[1]);
-
         int verbosity = 1;
 
         if(!fileExists(ArgFilename))
         {
-            msgerr << "File not found: " << ArgFilename << std::endl;
-            std::cerr  << msgerr.str();   
+            fprintf(stderr, "Error: File not found: %s \n", ArgFilename.c_str());
             return(EXIT_FAILURE);
         }
         else {
             lmfile* limo;
             limo = new lmfile(ArgFilename);
-
             limo->setverbositylevel(verbosity);
 
             msgerr << "# size (Bytes): " << limo->getfilesize() << std::endl ; 
             limo->convertlistmodefile();
-            //limo->sortEventlist();
-            //limo->el_printstatus();
-            std::cerr << "# Number of Events: " << limo ->getNumberOfEvents() << std::endl; 
-
-            //      if (vm.count("histo")) {
-            //      limo->el_printhistogram();
-            //      }
-            //limo->el_printallevents();
+            std::cerr << "# Number of Events: " << limo->getNumberOfEvents() << std::endl; 
 
             delete(limo);
             return(EXIT_SUCCESS);
           }
       }
-
   }
 

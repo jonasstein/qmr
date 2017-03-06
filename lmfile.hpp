@@ -71,9 +71,6 @@ class lmfile
     
     uint64_t ChSum[4] = {};
     
-    //event list items
-    //eventtime_t el_times_ns[MAX_EVENTS]; 
-    
     const char IDmon1 = 0b11110000;
     const char IDmon2 = 0b11110001;
     const char IDmon3 = 0b11110010;
@@ -115,7 +112,6 @@ class lmfile
     static triggerevent parseEvent(uint16_t LoWord, uint16_t MiWord, uint16_t HiWord, eventtime_t header_timestamp_ns);
     void DebugPrintFullEvent(triggerevent OneFullEvent, bool PrintOnlyHeader);
     void DebugPrintDatablock(bool PrintOnlyHeader);
-    void el_addevent(eventtime_t& mytime_ns, uint8_t& mysource);
     triggerevent el_getnexttriggerevent(eventtime_t currenttime);
     void el_printstatus();
     void el_printallevents();

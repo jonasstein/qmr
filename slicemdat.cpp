@@ -6,15 +6,16 @@
 #include <assert.h>     /* assert */
 
 void printhelp(){
-std::cout << "Usage: slicemdat <filename> <ID> <FROM m> <TO n>" << std::endl;
+std::cout << "Usage: slicemdat <filename> <ID> <ChImmune> <FROM m> <TO n>" << std::endl;
 std::cout << "Returns the slice between m-th to n-th occurence of ID" << std::endl; 
+std::cout << "The ChImmune channel will be immune to the filter" << std::endl; 
 }
 
 int main(int argc, char *argv[]){
  
-if (argc != 5)
+if (argc != 6)
   {
-    std::cerr << "Error wrong number of arguments. Expected 4, got " << argc-1 << ". Stopped." << std::endl;
+    std::cerr << "Error wrong number of arguments. Expected 5, got " << argc-1 << ". Stopped." << std::endl;
     printhelp();
     exit(3);
   }
@@ -23,8 +24,9 @@ if (argc != 5)
   std::string ArgThisProgram(argv[0]);
   std::string ArgFilename(argv[1]);
   long long ArgID=atol(argv[2]);
-  long long ArgFrom=atol(argv[3]);
-  long long ArgTo=atol(argv[4]); 
+  long long ArgIDImmune=atol(argv[3]);
+  long long ArgFrom=atol(argv[4]);
+  long long ArgTo=atol(argv[5]); 
 
   long long TrigID; 
   long long DataID;
@@ -59,14 +61,21 @@ if (argc != 5)
 	{
 	ItsInside = true;
 	}
+        if (ArgFrom==EventCounter) //include start-marker
+        {
+        ItsInside = true;
+        }
     }
     
     // ItsInside is already true, or make true if event is inside the markers
     ItsInside = ItsInside || ((ArgFrom <= EventCounter) && (EventCounter < ArgTo));
+    
+    // It is also inside, if it is immune to deletion
+    ItsInside = ItsInside || (ArgIDImmune == DataID);
 
     if (ItsInside)
 	{
-	std::printf("%lld %lld %lld %lld\n", CURRENTts  , TrigID, DataID, Data);
+	std::printf("%lld %lld %lld %lld\n", CURRENTts, TrigID, DataID, Data);
 	}
     }
 

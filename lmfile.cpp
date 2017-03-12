@@ -162,7 +162,7 @@ void lmfile::DebugPrintFullEvent(triggerevent OneFullEvent, bool PrintOnlyHeader
     dblock.metaBuffernumber = lmfile::readWord();
     
     dblock.runid = lmfile::readWord();
-    
+    std::cout << "runid: " << dblock.runid << std::endl;
     uint16_t wordRAW = lmfile::readWord(); // mcpdid + status(DAQ running, sync OK) in one word
     dblock.mcpdid = wordRAW >> 8;
     dblock.daqrunning = wordRAW & 0b00000001;  //should be 1 usually
